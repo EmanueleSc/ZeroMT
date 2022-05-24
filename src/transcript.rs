@@ -1,17 +1,18 @@
 use std::io::Error;
-
+extern crate alloc;
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::{PrimeField, ToBytes};
-use ark_serialize::{CanonicalSerialize, SerializationError};
+use ark_serialize::CanonicalSerialize;
 use merlin::Transcript;
 // Use the BN254 curve
+use alloc::vec::Vec;
 use ark_bn254::{g1::Parameters, Fr as ScalarField};
 use ark_std::Zero;
 
-pub enum ProofError {
+pub enum TranscriptError {
     /// This error occurs when a proof failed to verify.
-    #[cfg_attr(feature = "std", error("Proof verification failed."))]
-    VerificationError,
+    #[cfg_attr(feature = "std", error("Point validation failed."))]
+    PointValidationError,
 }
 pub trait TranscriptProtocol {
     /// Appends `label` to the transcript as a domain separator.
@@ -28,12 +29,26 @@ pub trait TranscriptProtocol {
         point: &GroupAffine<Parameters>,
     ) -> Result<(), Error>;
 
-    /// Append a prover `point` with the given `label` if it's not an identity/zero element
+    /// Append a prover `Vec` of `point` with the given `label`.
+    fn append_points_vector(
+        &mut self,
+        label: &'static [u8],
+        points: &Vec<GroupAffine<Parameters>>,
+    ) -> Result<(), Error>;
+
+    /// Append a prover `point` with the given `label` if it's not an identity/zero element.
     fn validate_and_append_point(
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<Result<(), Error>, ProofError>;
+    ) -> Result<(), TranscriptError>;
+
+    /// Append a prover `Vec` of `point` with the given `label` if it's not an identity/zero element.
+    fn validate_and_append_points_vector(
+        &mut self,
+        label: &'static [u8],
+        points: &Vec<GroupAffine<Parameters>>,
+    ) -> Result<(), TranscriptError>;
 
     /// Compute a verifier `label`ed challenge variable.
     fn challenge_scalar(&mut self, label: &'static [u8]) -> ScalarField;
@@ -74,11 +89,44 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<Result<(), Error>, ProofError> {
+    ) -> Result<(), TranscriptError> {
         if point.is_zero() {
-            Err(ProofError::VerificationError)
+            return Err(TranscriptError::PointValidationError);
         } else {
-            Ok(self.append_point(label, &point))
+            let result = self.append_point(label, &point);
+            if result.is_err() {
+                return Err(TranscriptError::PointValidationError);
+            } else {
+                return Ok(());
+            }
         }
+    }
+
+    fn append_points_vector(
+        &mut self,
+        label: &'static [u8],
+        points: &Vec<GroupAffine<Parameters>>,
+    ) -> Result<(), Error> {
+        for (point) in points.iter() {
+            let result = self.append_point(label, &point);
+            if result.is_err() {
+                return result;
+            }
+        }
+        return Ok(());
+    }
+
+    fn validate_and_append_points_vector(
+        &mut self,
+        label: &'static [u8],
+        points: &Vec<GroupAffine<Parameters>>,
+    ) -> Result<(), TranscriptError> {
+        for (point) in points.iter() {
+            let result = self.validate_and_append_point(label, &point);
+            if result.is_err() {
+                return result;
+            }
+        }
+        return Ok(());
     }
 }
