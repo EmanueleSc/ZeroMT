@@ -1,28 +1,27 @@
+mod proof_system_utils;
 mod prover;
 mod schnorr_proof;
 mod transcript;
 mod verifier;
 
-use std::ops::Mul;
-
-use crate::transcript::TranscriptProtocol;
+use ark_crypto_primitives::crh::pedersen::{Window, CRH};
+use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use prover::Prover;
 use rand::prelude::ThreadRng;
 use verifier::Verifier;
 
 use ark_bn254::g1::{G1_GENERATOR_X, G1_GENERATOR_Y};
-use ark_bn254::{Fq as BaseField, Fr as ScalarField, G1Affine, G1Projective};
-use ark_ec::models::bn::BnParameters;
+use ark_bn254::{g1::Parameters, Fr as ScalarField, G1Affine, G1Projective};
+
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, PrimeField};
-use ark_std::{One, UniformRand, Zero};
+use ark_ff::PrimeField;
 use merlin::Transcript;
+
+use proof_system_utils::ProofSystemUtils;
 
 fn main() {
     let mut prover_transcript = Transcript::new(b"SchnorrExample");
     let mut verifier_transcript = Transcript::new(b"SchnorrExample");
-    let mut rng: ThreadRng = ark_std::rand::thread_rng();
-
     let w_int = 42i64;
     let w = ScalarField::from(w_int);
     println!("witness w {:?}", w);
