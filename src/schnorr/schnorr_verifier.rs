@@ -4,10 +4,8 @@ use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::PrimeField;
 use merlin::Transcript;
 
-use crate::{
-    schnorr_proof::{SchnorrProof, SchnorrProofError},
-    transcript::TranscriptProtocol,
-};
+use crate::schnorr::schnorr_proof::{SchnorrProof, SchnorrProofError};
+use crate::transcript::TranscriptProtocol;
 
 pub struct Verifier<'a> {
     transcript: &'a mut Transcript,

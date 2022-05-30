@@ -1,12 +1,12 @@
-use merlin::Transcript;
-
-use crate::{schnorr_proof::SchnorrProof, transcript::TranscriptProtocol};
+use crate::schnorr::schnorr_proof::SchnorrProof;
+use crate::transcript::TranscriptProtocol;
 use ark_bn254::{g1::Parameters, Fr as ScalarField};
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::PrimeField;
 use ark_std::UniformRand;
-use rand::prelude::ThreadRng;
+use merlin::Transcript;
+use rand::Rng;
 
 pub struct Prover<'a> {
     transcript: &'a mut Transcript,
@@ -32,9 +32,8 @@ impl<'a> Prover<'a> {
         };
     }
 
-    pub fn generate_proof(&mut self) -> SchnorrProof {
-        let mut rng: ThreadRng = ark_std::rand::thread_rng();
-        let r = ScalarField::rand(&mut rng);
+    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> SchnorrProof {
+        let r = ScalarField::rand(rng);
         let a = self.g.mul(r.into_repr()).into_affine();
 
         self.transcript.append_point(b"a", &a);

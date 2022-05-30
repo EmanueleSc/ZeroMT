@@ -1,19 +1,12 @@
-use std::io::Error;
 extern crate alloc;
+use alloc::vec::Vec;
+use ark_bn254::{g1::Parameters, Fr as ScalarField};
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ff::{PrimeField, ToBytes};
 use ark_serialize::CanonicalSerialize;
-use merlin::Transcript;
-// Use the BN254 curve
-use alloc::vec::Vec;
-use ark_bn254::{g1::Parameters, Fr as ScalarField};
 use ark_std::Zero;
+use merlin::Transcript;
 
-pub enum TranscriptError {
-    /// This error occurs when a proof failed to verify.
-    #[cfg_attr(feature = "std", error("Point validation failed."))]
-    PointValidationError,
-}
 pub trait TranscriptProtocol {
     /// Appends `label` to the transcript as a domain separator.
     /// Used to insert a proof label in the transcript when it is used in the prover.
@@ -27,28 +20,28 @@ pub trait TranscriptProtocol {
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<(), Error>;
+    ) -> Result<(), &'static str>;
 
     /// Append a prover `Vec` of `point` with the given `label`.
     fn append_points_vector(
         &mut self,
         label: &'static [u8],
         points: &Vec<GroupAffine<Parameters>>,
-    ) -> Result<(), Error>;
+    ) -> Result<(), &'static str>;
 
     /// Append a prover `point` with the given `label` if it's not an identity/zero element.
     fn validate_and_append_point(
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<(), TranscriptError>;
+    ) -> Result<(), &'static str>;
 
     /// Append a prover `Vec` of `point` with the given `label` if it's not an identity/zero element.
     fn validate_and_append_points_vector(
         &mut self,
         label: &'static [u8],
         points: &Vec<GroupAffine<Parameters>>,
-    ) -> Result<(), TranscriptError>;
+    ) -> Result<(), &'static str>;
 
     /// Compute a verifier `label`ed challenge variable.
     fn challenge_scalar(&mut self, label: &'static [u8]) -> ScalarField;
@@ -65,14 +58,15 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), &'static str> {
         let mut bytes = Vec::new();
         let write_result = point.write(&mut bytes);
         if write_result.is_ok() {
             self.append_message(label, &bytes[..]);
+            return Ok(());
+        } else {
+            return Err("Point append error");
         }
-
-        return write_result;
     }
 
     fn domain_sep(&mut self, label: &'static [u8]) {
@@ -89,13 +83,13 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         label: &'static [u8],
         point: &GroupAffine<Parameters>,
-    ) -> Result<(), TranscriptError> {
+    ) -> Result<(), &'static str> {
         if point.is_zero() {
-            return Err(TranscriptError::PointValidationError);
+            return Err("Point validation failed.");
         } else {
             let result = self.append_point(label, &point);
             if result.is_err() {
-                return Err(TranscriptError::PointValidationError);
+                return Err("Point validation failed.");
             } else {
                 return Ok(());
             }
@@ -106,7 +100,7 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         label: &'static [u8],
         points: &Vec<GroupAffine<Parameters>>,
-    ) -> Result<(), Error> {
+    ) -> Result<(), &'static str> {
         for (point) in points.iter() {
             let result = self.append_point(label, &point);
             if result.is_err() {
@@ -120,7 +114,7 @@ impl TranscriptProtocol for Transcript {
         &mut self,
         label: &'static [u8],
         points: &Vec<GroupAffine<Parameters>>,
-    ) -> Result<(), TranscriptError> {
+    ) -> Result<(), &'static str> {
         for (point) in points.iter() {
             let result = self.validate_and_append_point(label, &point);
             if result.is_err() {
