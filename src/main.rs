@@ -6,6 +6,7 @@ mod verifier;
 
 use ark_crypto_primitives::crh::pedersen::{Window, CRH};
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
+
 use prover::Prover;
 use rand::prelude::ThreadRng;
 use verifier::Verifier;
@@ -20,7 +21,7 @@ use merlin::Transcript;
 use proof_system_utils::ProofSystemUtils;
 
 fn main() {
-    let mut prover_transcript = Transcript::new(b"SchnorrExample");
+    /* let mut prover_transcript = Transcript::new(b"SchnorrExample");
     let mut verifier_transcript = Transcript::new(b"SchnorrExample");
     let w_int = 42i64;
     let w = ScalarField::from(w_int);
@@ -39,5 +40,8 @@ fn main() {
 
     let mut schnorr_verifier = Verifier::new(&mut verifier_transcript, &g, &h);
     let result = schnorr_verifier.verify_proof(&proof);
-    println!("{:?}", result);
+    println!("{:?}", result);*/
+    let generator = ProofSystemUtils::get_generator_hash(4);
+
+    println!("{:?}", generator);
 }
