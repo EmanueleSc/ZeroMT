@@ -212,4 +212,149 @@ impl ProofSystemUtils {
     pub fn get_a_R(a_L: &Vec<i8>) -> Vec<i8> {
         return a_L.iter().map(|bit| bit - 1).collect();
     }
+
+    pub fn test_number_to_bits() {
+        let test_number: usize = 42;
+        let test_number_bits: Vec<i8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 0, 1, 0, 1, 0,
+        ]
+        .to_vec();
+        let resulting_number_bits: Vec<i8> = Self::number_to_bits(test_number);
+
+        assert_eq!(test_number_bits, resulting_number_bits);
+    }
+
+    pub fn test_get_a_L() {
+        let test_balance: usize = 42;
+        let test_amounts: Vec<usize> = [1, 2, 3, 4, 5].to_vec();
+
+        let mut test_a_L: Vec<i8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 0, 1, 0, 1, 0,
+        ]
+        .to_vec();
+
+        test_a_L.extend([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 1,
+        ]);
+
+        test_a_L.extend([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0,
+        ]);
+
+        test_a_L.extend([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 1,
+        ]);
+
+        test_a_L.extend([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 0,
+        ]);
+
+        test_a_L.extend([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 1, 0, 1,
+        ]);
+
+        let result_a_L: Vec<i8> = Self::get_a_L(test_balance, &test_amounts);
+
+        assert_eq!(result_a_L, test_a_L);
+    }
+
+    pub fn test_get_a_R() {
+        let test_a_L: Vec<i8> = [1, 0, 1, 1, 0, 0, 0, 0, 1].to_vec();
+        let test_a_R: Vec<i8> = [0, -1, 0, 0, -1, -1, -1, -1, 0].to_vec();
+        let result_a_R: Vec<i8> = Self::get_a_R(&test_a_L);
+
+        assert_eq!(result_a_R, test_a_R);
+    }
+
+    pub fn test_bit_inner_product() {
+        let mut rng = ark_std::rand::thread_rng();
+        let test_points: Vec<GroupAffine<G1Parameters>> =
+            Self::get_n_generators_berkeley(2, &mut rng);
+
+        let test_bits_one: Vec<i8> = [1, 1].to_vec();
+        let test_bits_two: Vec<i8> = [1, 0].to_vec();
+        let test_bits_three: Vec<i8> = [0, 1].to_vec();
+        let test_bits_four: Vec<i8> = [0, 0].to_vec();
+
+        let test_bits_minus_one: Vec<i8> = [-1, -1].to_vec();
+        let test_bits_minus_two: Vec<i8> = [-1, 0].to_vec();
+        let test_bits_minus_three: Vec<i8> = [0, -1].to_vec();
+
+        let test_bits_mix_three: Vec<i8> = [1, -1].to_vec();
+        let test_bits_mix_four: Vec<i8> = [-1, 1].to_vec();
+
+        let result_inner_product_one: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_one).unwrap();
+        assert_eq!(result_inner_product_one, test_points[0] + test_points[1]);
+
+        let result_inner_product_two: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_two).unwrap();
+        assert_eq!(
+            result_inner_product_two,
+            test_points[0] + GroupAffine::zero()
+        );
+
+        let result_inner_product_three: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_three).unwrap();
+        assert_eq!(
+            result_inner_product_three,
+            GroupAffine::zero() + test_points[1]
+        );
+
+        let result_inner_product_four: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_four).unwrap();
+        assert_eq!(
+            result_inner_product_four,
+            GroupAffine::zero() + GroupAffine::zero()
+        );
+
+        let result_inner_product_minus_one: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_minus_one).unwrap();
+        assert_eq!(
+            result_inner_product_minus_one,
+            -test_points[0] + -test_points[1]
+        );
+
+        let result_inner_product_minus_two: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_minus_two).unwrap();
+        assert_eq!(
+            result_inner_product_minus_two,
+            -test_points[0] + GroupAffine::zero()
+        );
+
+        let result_inner_product_minus_three: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_minus_three).unwrap();
+        assert_eq!(
+            result_inner_product_minus_three,
+            GroupAffine::zero() + -test_points[1]
+        );
+
+        let result_inner_product_mix_three: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_mix_three).unwrap();
+        assert_eq!(
+            result_inner_product_mix_three,
+            test_points[0] + -test_points[1]
+        );
+
+        let result_inner_product_mix_four: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_mix_four).unwrap();
+        assert_eq!(
+            result_inner_product_mix_four,
+            -test_points[0] + test_points[1]
+        );
+    }
 }

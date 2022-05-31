@@ -36,8 +36,8 @@ fn main() {
     let result = schnorr_verifier.verify_proof(&proof);
     println!("{:?}", result);*/
 
-    let balance = 100;
-    let amounts = vec![1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6];
-
-    ProofSystemUtils::pedersen_test(balance, &amounts);
+    ProofSystemUtils::test_number_to_bits();
+    ProofSystemUtils::test_get_a_L();
+    ProofSystemUtils::test_get_a_R();
+    ProofSystemUtils::test_bit_inner_product();
 }
