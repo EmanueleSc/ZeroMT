@@ -36,14 +36,15 @@ impl <W: Window> Bulletproof <W> {
     }
 
     pub fn get_a_L(balance: usize, amounts: &Vec<usize>) -> Vec<i8> {
-        let dim = W::WINDOW_SIZE * W::NUM_WINDOWS;
-        let mut a_L = Vec::<i8>::with_capacity(dim + 1);
+        let mut a_L = Vec::<i8>::new();
 
         a_L.extend_from_slice(&Self::to_le_bits(balance));
 
         amounts
             .iter()
-            .for_each(|a| a_L.extend_from_slice(&Self::to_le_bits(*a)));
+            .for_each(|a|
+                a_L.extend_from_slice(&Self::to_le_bits(*a))
+            );
         a_L
     }
 
