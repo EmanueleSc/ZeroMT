@@ -6,12 +6,10 @@ use ark_crypto_primitives::commitment::pedersen::Window;
 use ark_crypto_primitives::crh::pedersen::CRH;
 use ark_ec::short_weierstrass_jacobian::GroupAffine;
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{BigInteger, BigInteger256, PrimeField, ToBytes, Zero};
+use ark_ff::{PrimeField, Zero};
 use ark_std::UniformRand;
 use bitreader::BitReader;
 use rand::Rng;
-use std::io::Error;
-use std::result;
 
 #[derive(Clone)]
 struct MockWindow;
@@ -88,12 +86,8 @@ impl ProofSystemUtils {
                 .iter()
                 .zip(bits.iter())
                 .map(|(p, b)| {
-                    return match b {
-                        1 => *p,
-                        -1 => -*p,
-                        0 => GroupAffine::zero(),
-                        _ => GroupAffine::zero(),
-                    };
+                    let to_return = p.mul(b.abs() as u64).into_affine();
+                    return if *b < 0 { -to_return } else { to_return };
                 })
                 .sum();
 
@@ -190,6 +184,7 @@ impl ProofSystemUtils {
         while reader.remaining() > 0 {
             bits.push(if reader.read_bool().unwrap() { 1 } else { 0 });
         }
+        bits.reverse();
         return bits;
     }
 
@@ -215,12 +210,14 @@ impl ProofSystemUtils {
 
     pub fn test_number_to_bits() {
         let test_number: usize = 42;
-        let test_number_bits: Vec<i8> = [
+        let mut test_number_bits: Vec<i8> = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             1, 0, 1, 0, 1, 0,
         ]
         .to_vec();
+
+        test_number_bits.reverse();
         let resulting_number_bits: Vec<i8> = Self::number_to_bits(test_number);
 
         assert_eq!(test_number_bits, resulting_number_bits);
@@ -236,36 +233,49 @@ impl ProofSystemUtils {
             1, 0, 1, 0, 1, 0,
         ]
         .to_vec();
-
-        test_a_L.extend([
+        let mut one_bits = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 1,
-        ]);
-
-        test_a_L.extend([
+        ]
+        .to_vec();
+        let mut two_bits = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 1, 0,
-        ]);
-
-        test_a_L.extend([
+        ]
+        .to_vec();
+        let mut three_bits = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 1, 1,
-        ]);
-
-        test_a_L.extend([
+        ]
+        .to_vec();
+        let mut four_bits = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 0, 0,
-        ]);
-
-        test_a_L.extend([
+        ]
+        .to_vec();
+        let mut five_bits = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 1, 0, 1,
-        ]);
+        ]
+        .to_vec();
+
+        test_a_L.reverse();
+        one_bits.reverse();
+        two_bits.reverse();
+        three_bits.reverse();
+        four_bits.reverse();
+        five_bits.reverse();
+
+        test_a_L.extend(one_bits);
+        test_a_L.extend(two_bits);
+        test_a_L.extend(three_bits);
+        test_a_L.extend(four_bits);
+        test_a_L.extend(five_bits);
 
         let result_a_L: Vec<i8> = Self::get_a_L(test_balance, &test_amounts);
 
@@ -294,8 +304,8 @@ impl ProofSystemUtils {
         let test_bits_minus_two: Vec<i8> = [-1, 0].to_vec();
         let test_bits_minus_three: Vec<i8> = [0, -1].to_vec();
 
-        let test_bits_mix_three: Vec<i8> = [1, -1].to_vec();
-        let test_bits_mix_four: Vec<i8> = [-1, 1].to_vec();
+        let test_bits_mix_one: Vec<i8> = [1, -1].to_vec();
+        let test_bits_mix_two: Vec<i8> = [-1, 1].to_vec();
 
         let result_inner_product_one: GroupAffine<G1Parameters> =
             Self::bit_inner_product(&test_points, &test_bits_one).unwrap();
@@ -343,17 +353,17 @@ impl ProofSystemUtils {
             GroupAffine::zero() + -test_points[1]
         );
 
-        let result_inner_product_mix_three: GroupAffine<G1Parameters> =
-            Self::bit_inner_product(&test_points, &test_bits_mix_three).unwrap();
+        let result_inner_product_mix_one: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_mix_one).unwrap();
         assert_eq!(
-            result_inner_product_mix_three,
+            result_inner_product_mix_one,
             test_points[0] + -test_points[1]
         );
 
-        let result_inner_product_mix_four: GroupAffine<G1Parameters> =
-            Self::bit_inner_product(&test_points, &test_bits_mix_four).unwrap();
+        let result_inner_product_mix_two: GroupAffine<G1Parameters> =
+            Self::bit_inner_product(&test_points, &test_bits_mix_two).unwrap();
         assert_eq!(
-            result_inner_product_mix_four,
+            result_inner_product_mix_two,
             -test_points[0] + test_points[1]
         );
     }
