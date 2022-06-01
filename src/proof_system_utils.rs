@@ -177,26 +177,31 @@ impl ProofSystemUtils {
         return usize::BITS as usize;
     }
 
-    pub fn number_to_bits(number: usize) -> Vec<i8> {
+    pub fn number_to_be_bits(number: usize) -> Vec<i8> {
         let mut bits = Vec::<i8>::with_capacity(Self::get_n());
         let bytes = number.to_be_bytes();
         let mut reader = BitReader::new(&bytes);
         while reader.remaining() > 0 {
             bits.push(if reader.read_bool().unwrap() { 1 } else { 0 });
         }
+        return bits;
+    }
+
+    pub fn number_to_be_bits_reversed(number: usize) -> Vec<i8> {
+        let mut bits = Self::number_to_be_bits(number);
         bits.reverse();
         return bits;
     }
 
     pub fn get_a_L(balance: usize, amounts: &Vec<usize>) -> Vec<i8> {
         let mut bits = Vec::<i8>::with_capacity(Self::get_n_by_m(amounts.len() + 1));
-        Self::number_to_bits(balance)
+        Self::number_to_be_bits_reversed(balance)
             .iter()
             .for_each(|bit| bits.push(*bit));
 
         amounts
             .iter()
-            .map(|amount| Self::number_to_bits(*amount))
+            .map(|amount| Self::number_to_be_bits_reversed(*amount))
             .for_each(|bit_array| {
                 bit_array.iter().for_each(|bit| bits.push(*bit));
             });
@@ -208,7 +213,21 @@ impl ProofSystemUtils {
         return a_L.iter().map(|bit| bit - 1).collect();
     }
 
-    pub fn test_number_to_bits() {
+    pub fn test_number_to_be_bits() {
+        let test_number: usize = 42;
+        let mut test_number_bits: Vec<i8> = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 0, 1, 0, 1, 0,
+        ]
+        .to_vec();
+
+        let resulting_number_bits: Vec<i8> = Self::number_to_be_bits(test_number);
+
+        assert_eq!(test_number_bits, resulting_number_bits);
+    }
+
+    pub fn test_number_to_be_bits_reversed() {
         let test_number: usize = 42;
         let mut test_number_bits: Vec<i8> = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -218,7 +237,7 @@ impl ProofSystemUtils {
         .to_vec();
 
         test_number_bits.reverse();
-        let resulting_number_bits: Vec<i8> = Self::number_to_bits(test_number);
+        let resulting_number_bits: Vec<i8> = Self::number_to_be_bits_reversed(test_number);
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }

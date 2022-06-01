@@ -36,7 +36,8 @@ fn main() {
     let result = schnorr_verifier.verify_proof(&proof);
     println!("{:?}", result);*/
 
-    ProofSystemUtils::test_number_to_bits();
+    ProofSystemUtils::test_number_to_be_bits();
+    ProofSystemUtils::test_number_to_be_bits_reversed();
     ProofSystemUtils::test_get_a_L();
     ProofSystemUtils::test_get_a_R();
     ProofSystemUtils::test_bit_inner_product();
