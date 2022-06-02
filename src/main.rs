@@ -14,7 +14,7 @@ Prover:
     computes A = r * G
     sends 'A' to the verifier
 
-Verifer:
+Verifier:
     rand challange 'e' from group 
     sends 'e' to the prover
 

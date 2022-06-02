@@ -1,7 +1,9 @@
-use ark_bn254::{G1Affine, G1Projective};
+use ark_bn254::{G1Affine, G1Projective, Fr as ScalarField, g1::{G1_GENERATOR_X, G1_GENERATOR_Y}};
 use ark_ec::{ProjectiveCurve};
 use ark_crypto_primitives::crh::pedersen::{Window, CRH};
 use ark_std::rand::Rng;
+use ark_std::UniformRand;
+use ark_ff::{Zero};
 
 #[derive(Clone)]
 struct MockWindow;
@@ -24,6 +26,36 @@ impl ProofUtils {
             .map(|p| p.into_affine())
             .collect();
         generators
+    }
+
+    pub fn get_n_random_scalars<R: Rng>(
+        number_of_scalars: usize, 
+        rng: &mut R
+    ) -> Vec<ScalarField> {
+        let mut scalars = Vec::<ScalarField>::with_capacity(number_of_scalars);
+        for _ in 0..number_of_scalars {
+            scalars.push(ScalarField::rand(rng));
+        }
+        scalars
+    }
+
+    pub fn get_n_random_scalars_not_zero<R: Rng>(
+        number_of_scalars: usize,
+        rng: &mut R,
+    ) -> Vec<ScalarField> {
+        let mut scalars = Vec::<ScalarField>::with_capacity(number_of_scalars);
+        for _ in 0..number_of_scalars {
+            let mut to_push: ScalarField = ScalarField::rand(rng);
+            while to_push == ScalarField::zero() {
+                to_push = ScalarField::rand(rng);
+            }
+            scalars.push(to_push);
+        }
+        scalars
+    }
+
+    pub fn get_curve_generator() -> G1Affine {
+        return G1Affine::new(G1_GENERATOR_X, G1_GENERATOR_Y, false);
     }
 
 }

@@ -33,6 +33,7 @@ mod proof_utils_tests {
     }
     
     #[test]
+    #[should_panic]
     // example of failing test
     fn failing_test() {
         panic!("Make this test fail");
@@ -48,6 +49,7 @@ mod proof_utils_tests {
     }
 
     #[test]
+    #[should_panic]
     // example of failing test with custom fail message
     fn contain_name_test() {
         let s1 = "hello pippo";
