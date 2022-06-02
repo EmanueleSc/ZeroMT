@@ -1,5 +1,5 @@
 [package]
-name = "schnorr_prot"
+name = "zeromt"
 version = "0.1.0"
 edition = "2021"
 

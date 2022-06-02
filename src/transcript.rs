@@ -9,7 +9,7 @@ use crate::custom_errors::{throw, TranscriptError};
 pub trait TranscriptProtocol {
     // Append `label` to the transcript as a domain separator (label that should
     // uniquely identify the proof statement).
-    fn schnorr_domain_sep(&mut self, label: &'static [u8]);
+    fn domain_sep(&mut self, label: &'static [u8]);
 
     // Append a `scalar` with the given `label`.
     fn append_scalar(&mut self, label: &'static [u8], scalar: &ScalarField);
@@ -32,7 +32,7 @@ pub trait TranscriptProtocol {
 }
 
 impl TranscriptProtocol for Transcript {
-    fn schnorr_domain_sep(&mut self, label: &'static [u8]) {
+    fn domain_sep(&mut self, label: &'static [u8]) {
         self.append_message(b"dom-sep", label);
     }
 

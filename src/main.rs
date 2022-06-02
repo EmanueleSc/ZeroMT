@@ -1,15 +1,5 @@
-mod transcript;
-mod prover;
-mod verifier;
-mod custom_errors;
-mod zeromt;
-
 fn main() {
     println!("Hello, Proof System!");
-
-    //zeromt::generators_test();
-    zeromt::tests();
-
 }
 
 // OLD STAFF
