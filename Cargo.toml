@@ -1,9 +1,17 @@
 [package]
-name = "test_rust"
+name = "zeromt"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "zeromt"
+path = "src/main.rs"
+
+[lib]
+name = "zeromt"
+path = "src/lib.rs"
 
 [dependencies]
 merlin = "3.0.0"
