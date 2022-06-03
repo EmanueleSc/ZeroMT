@@ -45,7 +45,7 @@ impl TranscriptProtocol for Transcript {
             self.append_message(label, &bytes[..]);
             return Ok(());
         } else {
-            return throw(TranscriptError::PointSerializationError);
+            return Err(throw(TranscriptError::PointSerializationError));
         }
     }
 
@@ -66,7 +66,7 @@ impl TranscriptProtocol for Transcript {
         point: &G1Point,
     ) -> Result<(), Error> {
         if point.is_zero() {
-            return throw(TranscriptError::PointValidationError);
+            return Err(throw(TranscriptError::PointValidationError));
         }
         return self.append_point(label, &point);
     }

@@ -3,9 +3,15 @@ use ark_bn254::{Fr as ScalarField, G1Affine as G1Point, G1Projective};
 use ark_crypto_primitives::commitment::pedersen::Window;
 use ark_crypto_primitives::crh::pedersen::CRH;
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{One, PrimeField, Zero};
+use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::UniformRand;
 use rand::Rng;
+use std::io::Error;
+
+use crate::bulletproofs::poly_coefficients::PolyCoefficients;
+use crate::bulletproofs::poly_vector::PolyVector;
+use crate::errors::utils_error::throw;
+use crate::UtilsError;
 
 #[derive(Clone)]
 struct MockWindow;
@@ -14,9 +20,9 @@ impl Window for MockWindow {
     const WINDOW_SIZE: usize = 1;
     const NUM_WINDOWS: usize = 1;
 }
-pub struct ProofUtils;
+pub struct Utils;
 
-impl ProofUtils {
+impl Utils {
     // Berkeley solution
     pub fn get_n_generators_berkeley<R: Rng>(
         number_of_generators: usize,
@@ -65,7 +71,7 @@ impl ProofUtils {
         return G1Point::new(G1_GENERATOR_X, G1_GENERATOR_Y, false);
     }
 
-    pub fn inner_product(
+    pub fn inner_product_point_scalar(
         points: &Vec<G1Point>,
         scalars: &Vec<ScalarField>,
     ) -> Result<G1Point, &'static str> {
@@ -84,7 +90,63 @@ impl ProofUtils {
         return Ok(result);
     }
 
-    // b_scalar * b_point + <g_scalar_vec, g_point_vec> + <h_scalar_vec, h_point_vec>
+    pub fn product_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
+        vec.iter().map(|v: &ScalarField| *v * *s).collect()
+    }
+
+    pub fn sum_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
+        vec.iter().map(|v: &ScalarField| *v + *s).collect()
+    }
+
+    pub fn subtract_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
+        vec.iter().map(|v: &ScalarField| *v - *s).collect()
+    }
+
+    pub fn inner_product_scalar_scalar(
+        vec_1: &Vec<ScalarField>,
+        vec_2: &Vec<ScalarField>,
+    ) -> Result<ScalarField, Error> {
+        if vec_1.len() != vec_2.len() {
+            return Err(throw(UtilsError::MathError));
+        }
+
+        return Ok(Self::hadamard_product_scalar_scalar(vec_1, vec_2)
+            .unwrap()
+            .iter()
+            .sum());
+    }
+
+    pub fn hadamard_product_scalar_scalar(
+        vec_1: &Vec<ScalarField>,
+        vec_2: &Vec<ScalarField>,
+    ) -> Result<Vec<ScalarField>, Error> {
+        if vec_1.len() != vec_2.len() {
+            return Err(throw(UtilsError::MathError));
+        }
+
+        return Ok(vec_1
+            .iter()
+            .zip(vec_2.iter())
+            .map(|(s1, s2)| *s1 * *s2)
+            .collect());
+    }
+
+    pub fn sum_scalar_scalar(
+        vec_1: &Vec<ScalarField>,
+        vec_2: &Vec<ScalarField>,
+    ) -> Result<Vec<ScalarField>, Error> {
+        if vec_1.len() != vec_2.len() {
+            return Err(throw(UtilsError::MathError));
+        }
+
+        return Ok(vec_1
+            .iter()
+            .zip(vec_2.iter())
+            .map(|(s1, s2)| *s1 + *s2)
+            .collect());
+    }
+
+    /// b_scalar * b_point + <g_scalar_vec, g_point_vec> + <h_scalar_vec, h_point_vec>
     pub fn pedersen_vector_commitment(
         b_scalar: &ScalarField,
         b_point: &G1Point,
@@ -93,8 +155,8 @@ impl ProofUtils {
         h_scalar_vec: &Vec<ScalarField>,
         h_point_vec: &Vec<G1Point>,
     ) -> Result<G1Point, &'static str> {
-        let first_inner_product = Self::inner_product(g_point_vec, g_scalar_vec);
-        let second_inner_product = Self::inner_product(h_point_vec, h_scalar_vec);
+        let first_inner_product = Self::inner_product_point_scalar(g_point_vec, g_scalar_vec);
+        let second_inner_product = Self::inner_product_point_scalar(h_point_vec, h_scalar_vec);
         if first_inner_product.is_err() || second_inner_product.is_err() {
             return Err("Inner product error!");
         } else {
@@ -145,11 +207,60 @@ impl ProofUtils {
         return a_l.iter().map(|bit| *bit - ScalarField::one()).collect();
     }
 
-    /*pub fn l_poly(a_L: &Vec<i8>, z: ScalarField, s_L: Vec<ScalarField>) {
-        if a_L.len() != s_L.len() {
-            todo!()
+    pub fn generate_zero_two_zero_vec(m: usize, j: usize) -> Vec<ScalarField> {
+        let n = Self::get_n();
+        let mut to_return: Vec<ScalarField> = Vec::<ScalarField>::with_capacity(m * n);
+        let two: ScalarField = ScalarField::from(2);
+        for _ in 0..((j - 1) * n) {
+            to_return.push(ScalarField::zero());
+        }
+        for i in 0..n {
+            to_return.push(two.pow([i as u64]));
+        }
+        for _ in 0..((m - j) * n) {
+            to_return.push(ScalarField::zero());
         }
 
-        // a_L.iter().map(|bit| *bit - z.into_repr())
-    }*/
+        return to_return;
+    }
+
+    pub fn testing_polynomials(
+        y: &ScalarField,
+        z: &ScalarField,
+        a_l: &Vec<ScalarField>,
+        s_l: &Vec<ScalarField>,
+        a_r: &Vec<ScalarField>,
+        s_r: &Vec<ScalarField>,
+        m: usize,
+    ) {
+        let l_vec_left: Vec<ScalarField> = Self::subtract_scalar(z, a_l);
+
+        let l_vec: PolyVector = PolyVector::new(&l_vec_left, s_l);
+
+        let n = Self::get_n();
+        let y_vec: Vec<ScalarField> = (0..m * n).map(|i: usize| y.pow([i as u64])).collect();
+
+        let z_vec: Vec<ScalarField> = (1..=m)
+            .map(|j: usize| {
+                Self::product_scalar(
+                    &z.pow([(1 + j) as u64]),
+                    &Self::generate_zero_two_zero_vec(m, j),
+                )
+            })
+            .reduce(|accum: Vec<ScalarField>, item: Vec<ScalarField>| {
+                Self::sum_scalar_scalar(&accum, &item).unwrap()
+            })
+            .unwrap();
+
+        let r_vec_left_hadamard: Vec<ScalarField> =
+            Self::hadamard_product_scalar_scalar(&y_vec, &Self::subtract_scalar(z, a_r)).unwrap();
+
+        let r_vec_left: Vec<ScalarField> =
+            Self::sum_scalar_scalar(&r_vec_left_hadamard, &z_vec).unwrap();
+        let r_vec_right: Vec<ScalarField> =
+            Self::hadamard_product_scalar_scalar(&y_vec, &s_r).unwrap();
+        let r_vec: PolyVector = PolyVector::new(&r_vec_left, &r_vec_right);
+
+        let t_vec: PolyCoefficients = PolyCoefficients::new(&l_vec, &r_vec);
+    }
 }

@@ -5,11 +5,10 @@ pub enum ProofError {
     ProofValidationError,
 }
 
-pub fn throw(event: ProofError) -> Result<(), Error> {
+pub fn throw(event: ProofError) -> Error {
     match event {
-        ProofError::ProofValidationError => Err(Error::new(
-            ErrorKind::Other,
-            "Failure: proof validation error",
-        )),
+        ProofError::ProofValidationError => {
+            Error::new(ErrorKind::Other, "Failure: proof validation error")
+        }
     }
 }

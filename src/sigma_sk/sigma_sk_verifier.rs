@@ -35,7 +35,7 @@ impl<'a> Verifier<'a> {
         if left_eq == right_eq {
             return Ok(());
         } else {
-            return throw(ProofError::ProofValidationError);
+            return Err(throw(ProofError::ProofValidationError));
         }
     }
 }

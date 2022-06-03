@@ -1,9 +1,9 @@
 #[cfg(test)]
-mod proof_utils_tests {
+mod utils_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use ark_ec::short_weierstrass_jacobian::GroupAffine;
     use ark_ff::Zero;
-    use zeromt::ProofUtils;
+    use zeromt::Utils;
     #[test]
     pub fn number_to_be_bits_test() {
         let test_number: usize = 42;
@@ -14,7 +14,7 @@ mod proof_utils_tests {
         ]
         .to_vec();
 
-        let resulting_number_bits: Vec<u8> = ProofUtils::number_to_be_bits(test_number);
+        let resulting_number_bits: Vec<u8> = Utils::number_to_be_bits(test_number);
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }
@@ -29,7 +29,7 @@ mod proof_utils_tests {
         .to_vec();
 
         test_number_bits.reverse();
-        let resulting_number_bits: Vec<u8> = ProofUtils::number_to_be_bits_reversed(test_number);
+        let resulting_number_bits: Vec<u8> = Utils::number_to_be_bits_reversed(test_number);
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }
@@ -90,7 +90,7 @@ mod proof_utils_tests {
 
         let test_a_l_scalar: Vec<ScalarField> =
             test_a_l.iter().map(|bit| ScalarField::from(*bit)).collect();
-        let result_a_l: Vec<ScalarField> = ProofUtils::get_a_l(test_balance, &test_amounts);
+        let result_a_l: Vec<ScalarField> = Utils::get_a_l(test_balance, &test_amounts);
 
         assert_eq!(result_a_l, test_a_l_scalar);
     }
@@ -108,14 +108,14 @@ mod proof_utils_tests {
             .map(|bit| ScalarField::from(*bit))
             .collect();
 
-        let result_a_r: Vec<ScalarField> = ProofUtils::get_a_r(&test_a_l_scalar);
+        let result_a_r: Vec<ScalarField> = Utils::get_a_r(&test_a_l_scalar);
 
         assert_eq!(result_a_r, test_a_r_scalar);
     }
     #[test]
-    pub fn inner_product_test() {
+    pub fn inner_product_point_scalar_test() {
         let mut rng = ark_std::rand::thread_rng();
-        let test_points: Vec<G1Point> = ProofUtils::get_n_generators_berkeley(2, &mut rng);
+        let test_points: Vec<G1Point> = Utils::get_n_generators_berkeley(2, &mut rng);
 
         let test_bits_one: Vec<ScalarField> = [1, 1]
             .to_vec()
@@ -166,60 +166,60 @@ mod proof_utils_tests {
             .collect();
 
         let result_inner_product_one: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_one).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_one).unwrap();
         assert_eq!(result_inner_product_one, test_points[0] + test_points[1]);
 
         let result_inner_product_two: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_two).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_two).unwrap();
         assert_eq!(
             result_inner_product_two,
             test_points[0] + GroupAffine::zero()
         );
 
         let result_inner_product_three: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_three).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_three).unwrap();
         assert_eq!(
             result_inner_product_three,
             GroupAffine::zero() + test_points[1]
         );
 
         let result_inner_product_four: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_four).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_four).unwrap();
         assert_eq!(
             result_inner_product_four,
             GroupAffine::zero() + GroupAffine::zero()
         );
 
         let result_inner_product_minus_one: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_minus_one).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_minus_one).unwrap();
         assert_eq!(
             result_inner_product_minus_one,
             -test_points[0] + -test_points[1]
         );
 
         let result_inner_product_minus_two: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_minus_two).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_minus_two).unwrap();
         assert_eq!(
             result_inner_product_minus_two,
             -test_points[0] + GroupAffine::zero()
         );
 
         let result_inner_product_minus_three: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_minus_three).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_minus_three).unwrap();
         assert_eq!(
             result_inner_product_minus_three,
             GroupAffine::zero() + -test_points[1]
         );
 
         let result_inner_product_mix_one: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_mix_one).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_mix_one).unwrap();
         assert_eq!(
             result_inner_product_mix_one,
             test_points[0] + -test_points[1]
         );
 
         let result_inner_product_mix_two: G1Point =
-            ProofUtils::inner_product(&test_points, &test_bits_mix_two).unwrap();
+            Utils::inner_product_point_scalar(&test_points, &test_bits_mix_two).unwrap();
         assert_eq!(
             result_inner_product_mix_two,
             -test_points[0] + test_points[1]
@@ -232,33 +232,28 @@ mod proof_utils_tests {
         let amounts: Vec<usize> = [10, 20, 30, 40, 50].to_vec();
         let mut rng = ark_std::rand::thread_rng();
 
-        let alpha: ScalarField = ProofUtils::get_n_random_scalars(1, &mut rng)[0];
-        let rho: ScalarField = ProofUtils::get_n_random_scalars(1, &mut rng)[0];
+        let alpha: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
+        let rho: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
 
-        let a_l: Vec<ScalarField> = ProofUtils::get_a_l(balance, &amounts);
-        let a_r: Vec<ScalarField> = ProofUtils::get_a_r(&a_l);
+        let a_l: Vec<ScalarField> = Utils::get_a_l(balance, &amounts);
+        let a_r: Vec<ScalarField> = Utils::get_a_r(&a_l);
 
         let s_l: Vec<ScalarField> =
-            ProofUtils::get_n_random_scalars(ProofUtils::get_n_by_m(amounts.len() + 1), &mut rng);
+            Utils::get_n_random_scalars(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
         let s_r: Vec<ScalarField> =
-            ProofUtils::get_n_random_scalars(ProofUtils::get_n_by_m(amounts.len() + 1), &mut rng);
+            Utils::get_n_random_scalars(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
 
-        let g_vec: Vec<G1Point> = ProofUtils::get_n_generators_berkeley(
-            ProofUtils::get_n_by_m(amounts.len() + 1),
-            &mut rng,
-        );
-        let h_vec: Vec<G1Point> = ProofUtils::get_n_generators_berkeley(
-            ProofUtils::get_n_by_m(amounts.len() + 1),
-            &mut rng,
-        );
+        let g_vec: Vec<G1Point> =
+            Utils::get_n_generators_berkeley(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
+        let h_vec: Vec<G1Point> =
+            Utils::get_n_generators_berkeley(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
 
-        let h = ProofUtils::get_n_random_points(1, &mut rng)[0];
+        let h = Utils::get_n_random_points(1, &mut rng)[0];
 
         let a_commitment =
-            ProofUtils::pedersen_vector_commitment(&alpha, &h, &a_l, &g_vec, &a_r, &h_vec);
+            Utils::pedersen_vector_commitment(&alpha, &h, &a_l, &g_vec, &a_r, &h_vec);
 
-        let s_commitment =
-            ProofUtils::pedersen_vector_commitment(&rho, &h, &s_l, &g_vec, &s_r, &h_vec);
+        let s_commitment = Utils::pedersen_vector_commitment(&rho, &h, &s_l, &g_vec, &s_r, &h_vec);
 
         assert!(a_commitment.unwrap().is_on_curve());
         assert!(s_commitment.unwrap().is_on_curve());

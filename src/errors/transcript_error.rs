@@ -6,15 +6,13 @@ pub enum TranscriptError {
     PointSerializationError,
 }
 
-pub fn throw(event: TranscriptError) -> Result<(), Error> {
+pub fn throw(event: TranscriptError) -> Error {
     match event {
-        TranscriptError::PointValidationError => Err(Error::new(
-            ErrorKind::Other,
-            "Failure: G1 point is the identity",
-        )),
-        TranscriptError::PointSerializationError => Err(Error::new(
-            ErrorKind::Other,
-            "Failure: G1 point serialization error",
-        )),
+        TranscriptError::PointValidationError => {
+            Error::new(ErrorKind::Other, "Failure: G1 point is the identity")
+        }
+        TranscriptError::PointSerializationError => {
+            Error::new(ErrorKind::Other, "Failure: G1 point serialization error")
+        }
     }
 }

@@ -1,6 +1,6 @@
-use crate::proof_utils::ProofUtils;
 use crate::sigma_sk::sigma_sk_proof::Proof;
 use crate::transcript::TranscriptProtocol;
+use crate::utils::Utils;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::PrimeField;
@@ -34,7 +34,7 @@ impl<'a> Prover<'a> {
     }
 
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
-        let k_sk: ScalarField = ProofUtils::get_n_random_scalars(1, rng)[0];
+        let k_sk: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let a_y: G1Point = self.g.mul(k_sk.into_repr()).into_affine();
         self.transcript.append_point(b"A_y", &a_y);
 
