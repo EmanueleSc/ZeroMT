@@ -3,14 +3,11 @@ use ark_ff::{Field, One, Zero};
 use zeromt::Utils;
 
 fn main() {
-    println!("{:?}", ScalarField::one());
-    let two = ScalarField::from(2);
-    println!("{:?}", two);
+    let scalars: Vec<ScalarField> =
+        Utils::get_n_random_scalars(5, &mut ark_std::rand::thread_rng());
 
-    println!("{:?}", two.pow([0]));
-    println!("{:?}", two);
-    println!("{:?}", two.pow([1]));
-    println!("{:?}", two);
-    println!("{:?}", two.pow([2]));
-    println!("{:?}", two * two);
+    println!(
+        "{:?}",
+        scalars == Utils::product_scalar(&ScalarField::one(), &scalars)
+    );
 }

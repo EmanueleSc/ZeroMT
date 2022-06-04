@@ -33,7 +33,8 @@ mod utils_tests {
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }
-    #[test]
+
+    /*#[test]
     pub fn get_a_l_test() {
         let test_balance: usize = 42;
         let test_amounts: Vec<usize> = [1, 2, 3, 4, 5].to_vec();
@@ -93,8 +94,9 @@ mod utils_tests {
         let result_a_l: Vec<ScalarField> = Utils::get_a_l(test_balance, &test_amounts);
 
         assert_eq!(result_a_l, test_a_l_scalar);
-    }
-    #[test]
+    }*/
+
+    /*#[test]
     pub fn get_a_r_test() {
         let test_a_l_scalar: Vec<ScalarField> = [1, 0, 1, 1, 0, 0, 0, 0, 1]
             .to_vec()
@@ -111,7 +113,8 @@ mod utils_tests {
         let result_a_r: Vec<ScalarField> = Utils::get_a_r(&test_a_l_scalar);
 
         assert_eq!(result_a_r, test_a_r_scalar);
-    }
+    }*/
+
     #[test]
     pub fn inner_product_point_scalar_test() {
         let mut rng = ark_std::rand::thread_rng();
@@ -226,36 +229,10 @@ mod utils_tests {
         );
     }
 
-    #[test]
+    /*#[test]
     pub fn pedersen_test() {
         let balance: usize = 100;
         let amounts: Vec<usize> = [10, 20, 30, 40, 50].to_vec();
         let mut rng = ark_std::rand::thread_rng();
-
-        let alpha: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
-        let rho: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
-
-        let a_l: Vec<ScalarField> = Utils::get_a_l(balance, &amounts);
-        let a_r: Vec<ScalarField> = Utils::get_a_r(&a_l);
-
-        let s_l: Vec<ScalarField> =
-            Utils::get_n_random_scalars(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
-        let s_r: Vec<ScalarField> =
-            Utils::get_n_random_scalars(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
-
-        let g_vec: Vec<G1Point> =
-            Utils::get_n_generators_berkeley(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
-        let h_vec: Vec<G1Point> =
-            Utils::get_n_generators_berkeley(Utils::get_n_by_m(amounts.len() + 1), &mut rng);
-
-        let h = Utils::get_n_random_points(1, &mut rng)[0];
-
-        let a_commitment =
-            Utils::pedersen_vector_commitment(&alpha, &h, &a_l, &g_vec, &a_r, &h_vec);
-
-        let s_commitment = Utils::pedersen_vector_commitment(&rho, &h, &s_l, &g_vec, &s_r, &h_vec);
-
-        assert!(a_commitment.unwrap().is_on_curve());
-        assert!(s_commitment.unwrap().is_on_curve());
-    }
+    }*/
 }

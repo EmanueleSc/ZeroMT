@@ -32,6 +32,17 @@ impl PolyCoefficients {
         PolyCoefficients { t_0, t_1, t_2 }
     }
 
+    pub fn get_t_0(&self) -> &ScalarField {
+        &self.t_0
+    }
+
+    pub fn get_t_1(&self) -> &ScalarField {
+        &self.t_1
+    }
+    pub fn get_t_2(&self) -> &ScalarField {
+        &self.t_2
+    }
+
     pub fn evaluate(&self, x: &ScalarField) -> ScalarField {
         self.t_0 + *x * (self.t_1 + *x * self.t_2)
     }

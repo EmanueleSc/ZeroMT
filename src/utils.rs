@@ -166,6 +166,17 @@ impl Utils {
         }
     }
 
+    /// g_scalar * g_point + h_scalar * h_point
+    pub fn pedersen_commitment(
+        g_scalar: &ScalarField,
+        g_point: &G1Point,
+        h_scalar: &ScalarField,
+        h_point: &G1Point,
+    ) -> G1Point {
+        g_point.mul(g_scalar.into_repr()).into_affine()
+            + h_point.mul(h_scalar.into_repr()).into_affine()
+    }
+
     pub fn get_n_by_m(m: usize) -> usize {
         return (usize::BITS as usize) * m;
     }
@@ -185,82 +196,5 @@ impl Utils {
             .map(|i| (((number >> i) & 1) as u8))
             .collect();
         return bits;
-    }
-
-    pub fn get_a_l(balance: usize, amounts: &Vec<usize>) -> Vec<ScalarField> {
-        let mut bits: Vec<u8> = Vec::<u8>::with_capacity(Self::get_n_by_m(amounts.len() + 1));
-        Self::number_to_be_bits_reversed(balance)
-            .iter()
-            .for_each(|bit| bits.push(*bit));
-
-        amounts
-            .iter()
-            .map(|amount| Self::number_to_be_bits_reversed(*amount))
-            .for_each(|bit_array| {
-                bit_array.iter().for_each(|bit| bits.push(*bit));
-            });
-
-        return bits.iter().map(|bit| ScalarField::from(*bit)).collect();
-    }
-
-    pub fn get_a_r(a_l: &Vec<ScalarField>) -> Vec<ScalarField> {
-        return a_l.iter().map(|bit| *bit - ScalarField::one()).collect();
-    }
-
-    pub fn generate_zero_two_zero_vec(m: usize, j: usize) -> Vec<ScalarField> {
-        let n = Self::get_n();
-        let mut to_return: Vec<ScalarField> = Vec::<ScalarField>::with_capacity(m * n);
-        let two: ScalarField = ScalarField::from(2);
-        for _ in 0..((j - 1) * n) {
-            to_return.push(ScalarField::zero());
-        }
-        for i in 0..n {
-            to_return.push(two.pow([i as u64]));
-        }
-        for _ in 0..((m - j) * n) {
-            to_return.push(ScalarField::zero());
-        }
-
-        return to_return;
-    }
-
-    pub fn testing_polynomials(
-        y: &ScalarField,
-        z: &ScalarField,
-        a_l: &Vec<ScalarField>,
-        s_l: &Vec<ScalarField>,
-        a_r: &Vec<ScalarField>,
-        s_r: &Vec<ScalarField>,
-        m: usize,
-    ) {
-        let l_vec_left: Vec<ScalarField> = Self::subtract_scalar(z, a_l);
-
-        let l_vec: PolyVector = PolyVector::new(&l_vec_left, s_l);
-
-        let n = Self::get_n();
-        let y_vec: Vec<ScalarField> = (0..m * n).map(|i: usize| y.pow([i as u64])).collect();
-
-        let z_vec: Vec<ScalarField> = (1..=m)
-            .map(|j: usize| {
-                Self::product_scalar(
-                    &z.pow([(1 + j) as u64]),
-                    &Self::generate_zero_two_zero_vec(m, j),
-                )
-            })
-            .reduce(|accum: Vec<ScalarField>, item: Vec<ScalarField>| {
-                Self::sum_scalar_scalar(&accum, &item).unwrap()
-            })
-            .unwrap();
-
-        let r_vec_left_hadamard: Vec<ScalarField> =
-            Self::hadamard_product_scalar_scalar(&y_vec, &Self::subtract_scalar(z, a_r)).unwrap();
-
-        let r_vec_left: Vec<ScalarField> =
-            Self::sum_scalar_scalar(&r_vec_left_hadamard, &z_vec).unwrap();
-        let r_vec_right: Vec<ScalarField> =
-            Self::hadamard_product_scalar_scalar(&y_vec, &s_r).unwrap();
-        let r_vec: PolyVector = PolyVector::new(&r_vec_left, &r_vec_right);
-
-        let t_vec: PolyCoefficients = PolyCoefficients::new(&l_vec, &r_vec);
     }
 }
