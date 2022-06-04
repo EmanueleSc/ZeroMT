@@ -11,8 +11,8 @@ mod sigma_sk_tests {
     };
     #[test]
     fn verify_sigma_sk_test() {
-        let mut prover_trans: Transcript = Transcript::new(b"SigmaSK");
-        let mut verifier_trans: Transcript = Transcript::new(b"SigmaSK");
+        let mut prover_trans: Transcript = Transcript::new(b"SigmaSKTest");
+        let mut verifier_trans: Transcript = Transcript::new(b"SigmaSKTest");
 
         let mut rng = ark_std::rand::thread_rng();
         let sk: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];

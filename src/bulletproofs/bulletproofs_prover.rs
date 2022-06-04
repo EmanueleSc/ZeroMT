@@ -6,7 +6,9 @@ use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
-use super::{poly_coefficients::PolyCoefficients, poly_vector::PolyVector};
+use super::{
+    bulletproofs_proof::Proof, poly_coefficients::PolyCoefficients, poly_vector::PolyVector,
+};
 
 pub struct Prover<'a> {
     transcript: &'a mut Transcript,
@@ -34,7 +36,7 @@ impl<'a> Prover<'a> {
         }
     }
 
-    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) {
+    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
         let n: usize = Utils::get_n();
         let m: usize = self.a.len() + 1;
 
@@ -50,7 +52,6 @@ impl<'a> Prover<'a> {
         let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(Utils::get_n_by_m(m), rng);
         let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(Utils::get_n_by_m(m), rng);
 
-        let g: G1Point = Utils::get_curve_generator();
         let h: G1Point = Utils::get_n_generators_berkeley(1, rng)[0];
 
         let a_commitment: G1Point =
@@ -73,13 +74,21 @@ impl<'a> Prover<'a> {
         let tau_1: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let tau_2: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
-        let t_commitment_1: G1Point = Utils::pedersen_commitment(t_vec.get_t_1(), &g, &tau_1, &h);
-        let t_commitment_2: G1Point = Utils::pedersen_commitment(t_vec.get_t_2(), &g, &tau_2, &h);
+        let t_commitment_1: G1Point =
+            Utils::pedersen_commitment(t_vec.get_t_1(), &self.g, &tau_1, &h);
+        let t_commitment_2: G1Point =
+            Utils::pedersen_commitment(t_vec.get_t_2(), &self.g, &tau_2, &h);
 
         self.transcript.append_point(b"T1", &t_commitment_1);
         self.transcript.append_point(b"T2", &t_commitment_2);
 
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
+
+        println!("Prover y - {:?}", y);
+        println!("Prover x - {:?}", x);
+        println!("Prover z - {:?}", z);
+
+        Proof::new(a_commitment, s_commitment, t_commitment_1, t_commitment_2)
     }
 
     fn generate_zero_two_zero_vec(m: usize, n: usize, j: usize) -> Vec<ScalarField> {
@@ -165,3 +174,84 @@ impl<'a> Prover<'a> {
         PolyVector::new(r_vec_left, r_vec_right)
     }
 }
+
+/*#[test]
+pub fn get_a_l_test() {
+    let test_balance: usize = 42;
+    let test_amounts: Vec<usize> = [1, 2, 3, 4, 5].to_vec();
+
+    let mut test_a_l: Vec<i8> = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 0, 1, 0, 1, 0,
+    ]
+    .to_vec();
+    let mut one_bits = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 1,
+    ]
+    .to_vec();
+    let mut two_bits = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 0,
+    ]
+    .to_vec();
+    let mut three_bits = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 1,
+    ]
+    .to_vec();
+    let mut four_bits = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 0,
+    ]
+    .to_vec();
+    let mut five_bits = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 1,
+    ]
+    .to_vec();
+
+    test_a_l.reverse();
+    one_bits.reverse();
+    two_bits.reverse();
+    three_bits.reverse();
+    four_bits.reverse();
+    five_bits.reverse();
+
+    test_a_l.extend(one_bits);
+    test_a_l.extend(two_bits);
+    test_a_l.extend(three_bits);
+    test_a_l.extend(four_bits);
+    test_a_l.extend(five_bits);
+
+    let test_a_l_scalar: Vec<ScalarField> =
+        test_a_l.iter().map(|bit| ScalarField::from(*bit)).collect();
+    let result_a_l: Vec<ScalarField> = Utils::get_a_l(test_balance, &test_amounts);
+
+    assert_eq!(result_a_l, test_a_l_scalar);
+}*/
+
+/*#[test]
+pub fn get_a_r_test() {
+    let test_a_l_scalar: Vec<ScalarField> = [1, 0, 1, 1, 0, 0, 0, 0, 1]
+        .to_vec()
+        .iter()
+        .map(|bit| ScalarField::from(*bit))
+        .collect();
+
+    let test_a_r_scalar: Vec<ScalarField> = [0, -1, 0, 0, -1, -1, -1, -1, 0]
+        .to_vec()
+        .iter()
+        .map(|bit| ScalarField::from(*bit))
+        .collect();
+
+    let result_a_r: Vec<ScalarField> = Utils::get_a_r(&test_a_l_scalar);
+
+    assert_eq!(result_a_r, test_a_r_scalar);
+}*/

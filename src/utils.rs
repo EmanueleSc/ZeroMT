@@ -8,8 +8,6 @@ use ark_std::UniformRand;
 use rand::Rng;
 use std::io::Error;
 
-use crate::bulletproofs::poly_coefficients::PolyCoefficients;
-use crate::bulletproofs::poly_vector::PolyVector;
 use crate::errors::utils_error::throw;
 use crate::UtilsError;
 
@@ -23,7 +21,7 @@ impl Window for MockWindow {
 pub struct Utils;
 
 impl Utils {
-    // Berkeley solution
+    /// Berkeley solution
     pub fn get_n_generators_berkeley<R: Rng>(
         number_of_generators: usize,
         rng: &mut R,
