@@ -19,7 +19,7 @@ mod sigma_sk_tests {
         let g: G1Point = Utils::get_curve_generator();
         let y: G1Point = g.mul(sk.into_repr()).into_affine();
 
-        let mut prover: Prover = Prover::new(&mut prover_trans, &g, &y, &sk);
+        let mut prover: Prover = Prover::new(&mut prover_trans, &g, &sk);
 
         let proof: Proof = prover.generate_proof(&mut rng);
 

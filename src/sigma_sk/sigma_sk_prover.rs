@@ -11,26 +11,14 @@ pub struct Prover<'a> {
     transcript: &'a mut Transcript,
     /// public generator
     g: &'a G1Point,
-    /// sender public key: y = g^{sk}
-    y: &'a G1Point,
     /// witness: sender private key is a random scalar (!= 0)
     sk: &'a ScalarField,
 }
 
 impl<'a> Prover<'a> {
-    pub fn new(
-        transcript: &'a mut Transcript,
-        g: &'a G1Point,
-        y: &'a G1Point,
-        sk: &'a ScalarField,
-    ) -> Self {
+    pub fn new(transcript: &'a mut Transcript, g: &'a G1Point, sk: &'a ScalarField) -> Self {
         transcript.domain_sep(b"SigmaSK");
-        Prover {
-            transcript,
-            g,
-            y,
-            sk,
-        }
+        Prover { transcript, g, sk }
     }
 
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
