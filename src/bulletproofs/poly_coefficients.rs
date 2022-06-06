@@ -15,19 +15,20 @@ impl PolyCoefficients {
         let t_0: ScalarField =
             Utils::inner_product_scalar_scalar(l_poly_vector.get_left(), r_poly_vector.get_left())
                 .unwrap();
-        let t_1: ScalarField = Utils::inner_product_scalar_scalar(
+
+        let t_2: ScalarField = Utils::inner_product_scalar_scalar(
             l_poly_vector.get_right(),
             r_poly_vector.get_right(),
         )
         .unwrap();
 
-        let t_2: ScalarField = Utils::inner_product_scalar_scalar(
+        let t_1: ScalarField = Utils::inner_product_scalar_scalar(
             &Utils::sum_scalar_scalar(l_poly_vector.get_left(), l_poly_vector.get_right()).unwrap(),
             &Utils::sum_scalar_scalar(r_poly_vector.get_left(), r_poly_vector.get_right()).unwrap(),
         )
         .unwrap()
             - t_0
-            - t_1;
+            - t_2;
 
         PolyCoefficients { t_0, t_1, t_2 }
     }
@@ -44,6 +45,6 @@ impl PolyCoefficients {
     }
 
     pub fn evaluate(&self, x: &ScalarField) -> ScalarField {
-        self.t_0 + *x * (self.t_1 + *x * self.t_2)
+        self.t_0 + (*x * self.t_1) + (*x * *x * self.t_2)
     }
 }

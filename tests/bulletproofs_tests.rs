@@ -15,14 +15,15 @@ mod sigma_sk_tests {
 
         let mut rng = ark_std::rand::thread_rng();
         let g: G1Point = Utils::get_curve_generator();
+        let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
         let balance: usize = 100;
         let amounts: Vec<usize> = [10, 20, 30, 40, 50].to_vec();
 
-        let mut prover: Prover = Prover::new(&mut prover_trans, &g, balance, &amounts);
+        let mut prover: Prover = Prover::new(&mut prover_trans, &g, &h, balance, &amounts);
 
         let proof: Proof = prover.generate_proof(&mut rng);
 
-        let mut verifier: Verifier = Verifier::new(&mut verifier_trans);
+        let mut verifier: Verifier = Verifier::new(&mut verifier_trans, &g, &h, amounts.len());
 
         let result = verifier.verify_proof(&proof);
 

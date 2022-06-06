@@ -114,6 +114,10 @@ impl Utils {
             .sum());
     }
 
+    pub fn generate_scalar_exp_vector(n: usize, s: &ScalarField) -> Vec<ScalarField> {
+        (0..n).map(|i: usize| s.pow([i as u64])).collect()
+    }
+
     pub fn hadamard_product_scalar_scalar(
         vec_1: &Vec<ScalarField>,
         vec_2: &Vec<ScalarField>,
