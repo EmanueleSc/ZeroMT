@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod sigma_sk_tests {
+mod bulletproofs_tests {
     use core::panic;
 
     use ark_bn254::G1Affine as G1Point;

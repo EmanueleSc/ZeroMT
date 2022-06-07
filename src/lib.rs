@@ -2,6 +2,7 @@ mod bulletproofs;
 mod errors;
 mod sigma_r;
 mod sigma_sk;
+mod sigma_y;
 mod transcript;
 mod utils;
 
@@ -17,5 +18,10 @@ pub use crate::sigma_r::sigma_r_verifier::Verifier as SigmaRVerifier;
 pub use crate::sigma_sk::sigma_sk_proof::Proof as SigmaSkProof;
 pub use crate::sigma_sk::sigma_sk_prover::Prover as SigmaSkProver;
 pub use crate::sigma_sk::sigma_sk_verifier::Verifier as SigmaSkVerifier;
+
+pub use crate::sigma_y::sigma_y_proof::Proof as SigmaYProof;
+pub use crate::sigma_y::sigma_y_prover::Prover as SigmaYProver;
+pub use crate::sigma_y::sigma_y_verifier::Verifier as SigmaYVerifier;
+
 pub use crate::transcript::TranscriptProtocol;
 pub use crate::utils::Utils;
