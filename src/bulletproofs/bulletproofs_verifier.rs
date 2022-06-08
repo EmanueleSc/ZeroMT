@@ -36,6 +36,7 @@ impl<'a> Verifier<'a> {
     pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
         let n: usize = Utils::get_n();
         let m: usize = self.amounts + 1;
+        //println!("Verifier started, n: {}, m: {}", n, m);
 
         self.transcript.append_point(b"A", proof.get_a());
         self.transcript.append_point(b"S", proof.get_s());
@@ -57,37 +58,41 @@ impl<'a> Verifier<'a> {
         self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
         self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
 
-        let delta_left: ScalarField = (z - z.pow([2]))
-            * Utils::inner_product_scalar_scalar(
-                &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one()),
-                &Utils::generate_scalar_exp_vector(m * n, &y),
-            )
-            .unwrap();
+        /*println!("v, y {:?}", y);
+        println!("v, z {:?}", z);
+        println!("v, x {:?}", x);
+        println!("v, c {:?}", c);*/
+
+        let delta_left: ScalarField = (z - (z * z))
+            * Utils::generate_scalar_exp_vector(m * n, &y)
+                .iter()
+                .sum::<ScalarField>();
 
         let delta_right: ScalarField = (1..=m)
             .map(|j: usize| {
                 z.pow([2 + (j as u64)])
-                    * Utils::inner_product_scalar_scalar(
-                        &Utils::generate_scalar_exp_vector(n, &ScalarField::one()),
-                        &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2)),
-                    )
-                    .unwrap()
+                    * Utils::generate_scalar_exp_vector(n, &ScalarField::from(2))
+                        .iter()
+                        .sum::<ScalarField>()
             })
-            .sum();
+            .sum::<ScalarField>();
 
         let delta_y_z: ScalarField = delta_left - delta_right;
 
-        let g_exp: ScalarField = (c * (*proof.get_t_hat() - delta_y_z)) - *proof.get_s_ab();
+        let g_exp: ScalarField = (c * *proof.get_t_hat()) - (c * delta_y_z) - *proof.get_s_ab();
+        let h_exp: ScalarField = *proof.get_s_tau();
 
-        let left_eq: G1Point =
-            Utils::pedersen_commitment(&g_exp, self.g, proof.get_s_tau(), self.h);
+        let left_eq: G1Point = Utils::pedersen_commitment(&g_exp, self.g, &h_exp, self.h);
 
         // (c*x)T1 + (c*x^2)T2
         // T1^(c*x)T2^(c*x^2)
         // (T1^(x)T2^(x^2))^c
 
+        let g_scal: ScalarField = c * x;
+        let h_scal: ScalarField = c * x * x;
+
         let right_eq: G1Point = *proof.get_a_t()
-            + Utils::pedersen_commitment(&(c * x), proof.get_t_1(), &(c * x * x), proof.get_t_2());
+            + Utils::pedersen_commitment(&g_scal, proof.get_t_1(), &h_scal, proof.get_t_2());
 
         if left_eq == right_eq {
             return Ok(());

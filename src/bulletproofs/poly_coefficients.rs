@@ -27,8 +27,8 @@ impl PolyCoefficients {
             &Utils::sum_scalar_scalar(r_poly_vector.get_left(), r_poly_vector.get_right()).unwrap(),
         )
         .unwrap()
-            - t_0
-            - t_2;
+            + -t_0
+            + -t_2;
 
         PolyCoefficients { t_0, t_1, t_2 }
     }

@@ -17,9 +17,11 @@ mod bulletproofs_tests {
         let g: G1Point = Utils::get_curve_generator();
         let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
         let balance: usize = 100;
-        let amounts: Vec<usize> = [10, 20, 30, 40, 50].to_vec();
+        let amounts: Vec<usize> = [1, 2, 3, 4, 5, 5, 4, 2, 2, 4, 5, 3].to_vec();
+        let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
 
-        let mut prover: Prover = Prover::new(&mut prover_trans, &g, &h, balance, &amounts);
+        let mut prover: Prover =
+            Prover::new(&mut prover_trans, &g, &h, balance_remaining, &amounts);
 
         let proof: Proof = prover.generate_proof(&mut rng);
 

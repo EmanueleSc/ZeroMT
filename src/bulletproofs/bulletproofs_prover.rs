@@ -42,6 +42,7 @@ impl<'a> Prover<'a> {
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
         let n: usize = Utils::get_n();
         let m: usize = self.a.len() + 1;
+        // println!("Prover started, n: {}, m: {}", n, m);
 
         let alpha: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let rho: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
@@ -96,7 +97,7 @@ impl<'a> Prover<'a> {
         // println!("Check {:?}", t_hat == t_x);
 
         // Theoretical doubt
-        let tau_x: ScalarField = x * (tau_1 + (x * tau_2));
+        let tau_x: ScalarField = (x * tau_1) + (x * x * tau_2);
 
         let mu: ScalarField = alpha + rho * x;
 
@@ -116,6 +117,11 @@ impl<'a> Prover<'a> {
 
         self.transcript.append_scalar(b"s_ab", &s_ab);
         self.transcript.append_scalar(b"s_tau", &s_tau);
+
+        /*println!("p, y {:?}", y);
+        println!("p, z {:?}", z);
+        println!("p, x {:?}", x);
+        println!("p, c {:?}", c);*/
 
         Proof::new(
             a_commitment,
@@ -139,10 +145,10 @@ impl<'a> Prover<'a> {
     ) -> ScalarField {
         let n: usize = a.len();
         let sum_a_z: ScalarField = (1..=n)
-            .map(|i: usize| ScalarField::from(a[i - 1] as i64) * z.pow([2 + (i as u64)]))
+            .map(|i: usize| ScalarField::from(a[i - 1] as i128) * z.pow([2 + (i as u64)]))
             .sum();
 
-        let right: ScalarField = (ScalarField::from(b as i64) * z.pow([2])) + sum_a_z;
+        let right: ScalarField = (ScalarField::from(b as i128) * z.pow([2])) + sum_a_z;
 
         *k_ab + (*c * right)
     }
@@ -150,19 +156,14 @@ impl<'a> Prover<'a> {
     fn generate_zero_two_zero_vec(m: usize, n: usize, j: usize) -> Vec<ScalarField> {
         let mut to_return: Vec<ScalarField> = Vec::<ScalarField>::with_capacity(m * n);
 
-        to_return.append(&mut Utils::generate_scalar_exp_vector(
-            (j - 1) * n,
-            &ScalarField::zero(),
-        ));
+        to_return.append(&mut (0..((j - 1) * n)).map(|_| ScalarField::zero()).collect());
 
         to_return.append(&mut Utils::generate_scalar_exp_vector(
             n,
             &ScalarField::from(2),
         ));
-        to_return.append(&mut Utils::generate_scalar_exp_vector(
-            (m - j) * n,
-            &ScalarField::zero(),
-        ));
+
+        to_return.append(&mut (0..((m - j) * n)).map(|_| ScalarField::zero()).collect());
 
         return to_return;
     }

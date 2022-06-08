@@ -69,6 +69,7 @@ impl Utils {
         return G1Point::new(G1_GENERATOR_X, G1_GENERATOR_Y, false);
     }
 
+    /// Each scalar is multiplied to each point. The sum of all results is then made.
     pub fn inner_product_point_scalar(
         points: &Vec<G1Point>,
         scalars: &Vec<ScalarField>,
@@ -88,18 +89,22 @@ impl Utils {
         return Ok(result);
     }
 
+    /// The scalar is multiplied to each scalar of the vector.
     pub fn product_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
         vec.iter().map(|v: &ScalarField| *v * *s).collect()
     }
 
+    /// The scalar is add to each scalar of the vector.
     pub fn sum_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
         vec.iter().map(|v: &ScalarField| *v + *s).collect()
     }
 
+    /// The scalar is subtracted from each scalar of the vector.
     pub fn subtract_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
         vec.iter().map(|v: &ScalarField| *v - *s).collect()
     }
 
+    /// Inner product betweeen scalars vectors
     pub fn inner_product_scalar_scalar(
         vec_1: &Vec<ScalarField>,
         vec_2: &Vec<ScalarField>,
@@ -118,6 +123,7 @@ impl Utils {
         (0..n).map(|i: usize| s.pow([i as u64])).collect()
     }
 
+    /// Hadamard product betweeen scalars vectors
     pub fn hadamard_product_scalar_scalar(
         vec_1: &Vec<ScalarField>,
         vec_2: &Vec<ScalarField>,
@@ -133,6 +139,7 @@ impl Utils {
             .collect());
     }
 
+    /// Sum betweeen scalars vectors
     pub fn sum_scalar_scalar(
         vec_1: &Vec<ScalarField>,
         vec_2: &Vec<ScalarField>,
@@ -180,7 +187,7 @@ impl Utils {
     }
 
     pub fn get_n_by_m(m: usize) -> usize {
-        return (usize::BITS as usize) * m;
+        return Self::get_n() * m;
     }
 
     pub fn get_n() -> usize {
