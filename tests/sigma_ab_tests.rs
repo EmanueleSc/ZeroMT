@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod sigma_y_tests {
+mod sigma_ab_tests {
     use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
@@ -7,16 +7,19 @@ mod sigma_y_tests {
     use ark_ff::{Field, One, PrimeField, Zero};
     use ark_std::rand::Rng;
     use merlin::Transcript;
-    use zeromt::{SigmaYProof as Proof, SigmaYProver as Prover, SigmaYVerifier as Verifier, Utils};
+    use zeromt::{
+        SigmaABProof as Proof, SigmaABProver as Prover, SigmaABVerifier as Verifier, Utils,
+    };
 
     #[test]
-    fn verify_sigma_y_test() {
-        let mut prover_trans: Transcript = Transcript::new(b"SigmaYTest");
-        let mut verifier_trans: Transcript = Transcript::new(b"SigmaYTest");
+    fn verify_sigma_ab_test() {
+        let mut prover_trans: Transcript = Transcript::new(b"SigmaABTest");
+        let mut verifier_trans: Transcript = Transcript::new(b"SigmaABTest");
 
         let mut rng = ark_std::rand::thread_rng();
         let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
         let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
+        let z: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
 
         // Random private keys
         let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
@@ -53,9 +56,12 @@ mod sigma_y_tests {
         let mut prover: Prover = Prover::new(
             &mut prover_trans,
             &g,
-            &r,
-            &sender_pub_key,
-            &recipients_pub_keys,
+            &z,
+            &d,
+            &c_r,
+            balance_remaining,
+            &amounts,
+            &sender_priv_key,
         );
 
         let proof: Proof = prover.generate_proof(&mut rng);
@@ -63,10 +69,12 @@ mod sigma_y_tests {
         let mut verifier: Verifier = Verifier::new(
             &mut verifier_trans,
             &g,
-            &sender_pub_key,
-            &recipients_pub_keys,
+            &d,
+            &c_r,
+            &c_l,
+            &z,
             &c_vec,
-            &c_bar_vec,
+            amounts.len(),
         );
 
         let result = verifier.verify_proof(&proof);
