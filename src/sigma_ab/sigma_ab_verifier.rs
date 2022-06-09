@@ -14,7 +14,6 @@ pub struct Verifier<'a> {
     d: &'a G1Point,
     c_r: &'a G1Point,
     c_l: &'a G1Point,
-    z: &'a ScalarField,
     c_vec: &'a Vec<G1Point>,
     a: usize,
 }
@@ -26,7 +25,6 @@ impl<'a> Verifier<'a> {
         d: &'a G1Point,
         c_r: &'a G1Point,
         c_l: &'a G1Point,
-        z: &'a ScalarField,
         c_vec: &'a Vec<G1Point>,
         a: usize,
     ) -> Self {
@@ -38,13 +36,14 @@ impl<'a> Verifier<'a> {
             d,
             c_r,
             c_l,
-            z,
             c_vec,
             a,
         }
     }
 
     pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
+        let z: ScalarField = self.transcript.challenge_scalar(b"z");
+
         self.transcript.append_point(b"A_ab", proof.get_a_ab());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
@@ -53,13 +52,13 @@ impl<'a> Verifier<'a> {
         self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
 
         let left_eq_sum_d_z: G1Point = (1..=self.a)
-            .map(|i| self.d.mul(self.z.pow([2 + (i as u64)])).into_affine())
+            .map(|i| self.d.mul(z.pow([2 + (i as u64)])).into_affine())
             .sum::<G1Point>();
 
         let left_eq_c_r_d_z: G1Point = (self.c_r.into_projective()
             - self.d.mul(ScalarField::from(self.a as i128)))
         .into_affine()
-        .mul(self.z.pow([2]).into_repr())
+        .mul(z.pow([2]).into_repr())
         .into_affine();
 
         let left_eq: G1Point = (left_eq_c_r_d_z + left_eq_sum_d_z)
@@ -72,7 +71,7 @@ impl<'a> Verifier<'a> {
                 self.c_vec
                     .get(i - 1)
                     .unwrap()
-                    .mul(self.z.pow([2 + (i as u64)]))
+                    .mul(z.pow([2 + (i as u64)]))
                     .into_affine()
             })
             .sum::<G1Point>();
@@ -80,7 +79,7 @@ impl<'a> Verifier<'a> {
         let right_eq_cl_ci_z: G1Point = (self.c_l.into_projective()
             - self.c_vec.iter().sum::<G1Point>().into_projective())
         .into_affine()
-        .mul(self.z.pow([2]).into_repr())
+        .mul(z.pow([2]).into_repr())
         .into_affine();
 
         let right_eq: G1Point = (right_eq_sum_c_z + right_eq_cl_ci_z)

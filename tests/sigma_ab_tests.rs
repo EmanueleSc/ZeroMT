@@ -19,7 +19,6 @@ mod sigma_ab_tests {
         let mut rng = ark_std::rand::thread_rng();
         let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
         let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
-        let z: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
 
         // Random private keys
         let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
@@ -56,7 +55,6 @@ mod sigma_ab_tests {
         let mut prover: Prover = Prover::new(
             &mut prover_trans,
             &g,
-            &z,
             &d,
             &c_r,
             balance_remaining,
@@ -72,7 +70,6 @@ mod sigma_ab_tests {
             &d,
             &c_r,
             &c_l,
-            &z,
             &c_vec,
             amounts.len(),
         );
