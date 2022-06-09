@@ -1,5 +1,5 @@
-mod bulletproofs;
 mod errors;
+mod range_proof;
 mod sigma_ab;
 mod sigma_r;
 mod sigma_sk;
@@ -11,9 +11,9 @@ pub use crate::errors::proof_error::ProofError;
 pub use crate::errors::transcript_error::TranscriptError;
 pub use crate::errors::utils_error::UtilsError;
 
-pub use crate::bulletproofs::bulletproofs_proof::Proof as BulletproofsProof;
-pub use crate::bulletproofs::bulletproofs_prover::Prover as BulletproofsProver;
-pub use crate::bulletproofs::bulletproofs_verifier::Verifier as BulletproofsVerifier;
+pub use crate::range_proof::range_proof_proof::Proof as RangeProof;
+pub use crate::range_proof::range_proof_prover::Prover as RangeProofProver;
+pub use crate::range_proof::range_proof_verifier::Verifier as RangeProofVerifier;
 
 pub use crate::sigma_r::sigma_r_proof::Proof as SigmaRProof;
 pub use crate::sigma_r::sigma_r_prover::Prover as SigmaRProver;

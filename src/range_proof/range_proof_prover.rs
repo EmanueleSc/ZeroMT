@@ -7,7 +7,7 @@ use ark_std::rand::Rng;
 use merlin::Transcript;
 
 use super::{
-    bulletproofs_proof::Proof, poly_coefficients::PolyCoefficients, poly_vector::PolyVector,
+    poly_coefficients::PolyCoefficients, poly_vector::PolyVector, range_proof_proof::Proof,
 };
 
 pub struct Prover<'a> {

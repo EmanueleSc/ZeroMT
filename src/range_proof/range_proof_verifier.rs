@@ -7,7 +7,7 @@ use ark_ff::{Field, One, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
-use super::bulletproofs_proof::Proof;
+use super::range_proof_proof::Proof;
 
 pub struct Verifier<'a> {
     transcript: &'a mut Transcript,
