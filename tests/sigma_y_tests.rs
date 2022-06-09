@@ -50,19 +50,13 @@ mod sigma_y_tests {
             .map(|(a, k)| Utils::elgamal_encrypt(*a, k, &g, &r).0)
             .collect();
 
-        let mut prover: Prover = Prover::new(
-            &mut prover_trans,
-            &g,
-            &r,
-            &sender_pub_key,
-            &recipients_pub_keys,
-        );
+        let mut prover: Prover =
+            Prover::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
 
         let proof: Proof = prover.generate_proof(&mut rng);
 
         let mut verifier: Verifier = Verifier::new(
             &mut verifier_trans,
-            &g,
             &sender_pub_key,
             &recipients_pub_keys,
             &c_vec,

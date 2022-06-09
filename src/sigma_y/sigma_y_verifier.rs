@@ -9,8 +9,6 @@ use std::io::Error;
 
 pub struct Verifier<'a> {
     transcript: &'a mut Transcript,
-    /// public generator
-    g: &'a G1Point,
     y: &'a G1Point,
     y_bar: &'a Vec<G1Point>,
     c_vec: &'a Vec<G1Point>,
@@ -20,7 +18,6 @@ pub struct Verifier<'a> {
 impl<'a> Verifier<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
-        g: &'a G1Point,
         y: &'a G1Point,
         y_bar: &'a Vec<G1Point>,
         c_vec: &'a Vec<G1Point>,
@@ -29,7 +26,6 @@ impl<'a> Verifier<'a> {
         transcript.domain_sep(b"SigmaY");
         Verifier {
             transcript,
-            g,
             y,
             y_bar,
             c_vec,

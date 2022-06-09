@@ -9,8 +9,6 @@ use merlin::Transcript;
 
 pub struct Prover<'a> {
     transcript: &'a mut Transcript,
-    /// public generator
-    g: &'a G1Point,
     r: &'a ScalarField,
     y: &'a G1Point,
     y_bar: &'a Vec<G1Point>,
@@ -19,7 +17,6 @@ pub struct Prover<'a> {
 impl<'a> Prover<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
-        g: &'a G1Point,
         r: &'a ScalarField,
         y: &'a G1Point,
         y_bar: &'a Vec<G1Point>,
@@ -27,7 +24,6 @@ impl<'a> Prover<'a> {
         transcript.domain_sep(b"SigmaY");
         Prover {
             transcript,
-            g,
             r,
             y,
             y_bar,
