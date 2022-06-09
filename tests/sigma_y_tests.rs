@@ -18,10 +18,14 @@ mod sigma_y_tests {
         let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
         let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
+        let balance: usize = 100;
+        let amounts: Vec<usize> = [1, 2, 3, 4, 5, 5, 4, 2, 2, 4, 5, 3].to_vec();
+        let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
+
         // Random private keys
         let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
         let recipients_priv_keys: Vec<ScalarField> =
-            Utils::get_n_random_scalars_not_zero(5, &mut rng);
+            Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
 
         // Public keys
         let sender_pub_key: G1Point = Utils::elgamal_calculate_pub_key(&sender_priv_key, &g);
@@ -29,10 +33,6 @@ mod sigma_y_tests {
             .iter()
             .map(|key: &ScalarField| Utils::elgamal_calculate_pub_key(key, &g))
             .collect();
-
-        let balance: usize = 100;
-        let amounts: Vec<usize> = [1, 2, 3, 4, 5, 5, 4, 2, 2, 4, 5, 3].to_vec();
-        let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
 
         let (c_l, c_r): (G1Point, G1Point) =
             Utils::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
