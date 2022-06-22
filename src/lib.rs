@@ -1,5 +1,6 @@
 mod errors;
-mod range_proof;
+mod inner;
+mod range;
 mod sigma_ab;
 mod sigma_r;
 mod sigma_sk;
@@ -11,9 +12,13 @@ pub use crate::errors::proof_error::ProofError;
 pub use crate::errors::transcript_error::TranscriptError;
 pub use crate::errors::utils_error::UtilsError;
 
-pub use crate::range_proof::range_proof_proof::Proof as RangeProof;
-pub use crate::range_proof::range_proof_prover::Prover as RangeProofProver;
-pub use crate::range_proof::range_proof_verifier::Verifier as RangeProofVerifier;
+pub use crate::inner::inner_proof::Proof as InnerProof;
+pub use crate::inner::inner_prover::Prover as InnerProver;
+pub use crate::inner::inner_verifier::Verifier as InnerVerifier;
+
+pub use crate::range::range_proof::Proof as RangeProof;
+pub use crate::range::range_prover::Prover as RangeProver;
+pub use crate::range::range_verifier::Verifier as RangeVerifier;
 
 pub use crate::sigma_r::sigma_r_proof::Proof as SigmaRProof;
 pub use crate::sigma_r::sigma_r_prover::Prover as SigmaRProver;

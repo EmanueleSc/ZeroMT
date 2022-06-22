@@ -7,7 +7,7 @@ use ark_ff::{Field, One, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
-use super::range_proof_proof::Proof;
+use super::range_proof::Proof;
 
 pub struct Verifier<'a> {
     transcript: &'a mut Transcript,
@@ -24,7 +24,7 @@ impl<'a> Verifier<'a> {
         h: &'a G1Point,
         amounts: usize,
     ) -> Self {
-        transcript.domain_sep(b"Bulletproofs");
+        transcript.domain_sep(b"RangeProof");
         Verifier {
             transcript,
             g,

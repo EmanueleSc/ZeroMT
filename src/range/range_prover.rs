@@ -6,9 +6,7 @@ use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
-use super::{
-    poly_coefficients::PolyCoefficients, poly_vector::PolyVector, range_proof_proof::Proof,
-};
+use super::{poly_coefficients::PolyCoefficients, poly_vector::PolyVector, range_proof::Proof};
 
 pub struct Prover<'a> {
     transcript: &'a mut Transcript,
@@ -29,7 +27,7 @@ impl<'a> Prover<'a> {
         b: usize,
         a: &'a Vec<usize>,
     ) -> Self {
-        transcript.domain_sep(b"Bulletproofs");
+        transcript.domain_sep(b"RangeProof");
         Prover {
             transcript,
             g,
@@ -47,14 +45,14 @@ impl<'a> Prover<'a> {
         let alpha: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let rho: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
-        let a_l: Vec<ScalarField> = Self::get_a_l(self.b, self.a);
+        let a_l: Vec<ScalarField> = Self::get_a_l(self.b, self.a, m, n);
         let a_r: Vec<ScalarField> = Self::get_a_r(&a_l);
 
-        let s_l: Vec<ScalarField> = Utils::get_n_random_scalars(Utils::get_n_by_m(m), rng);
-        let s_r: Vec<ScalarField> = Utils::get_n_random_scalars(Utils::get_n_by_m(m), rng);
+        let s_l: Vec<ScalarField> = Utils::get_n_random_scalars(m * n, rng);
+        let s_r: Vec<ScalarField> = Utils::get_n_random_scalars(m * n, rng);
 
-        let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(Utils::get_n_by_m(m), rng);
-        let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(Utils::get_n_by_m(m), rng);
+        let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, rng);
+        let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, rng);
 
         let a_commitment: G1Point =
             Utils::pedersen_vector_commitment(&alpha, self.h, &a_l, &g_vec, &a_r, &h_vec).unwrap();
@@ -168,8 +166,8 @@ impl<'a> Prover<'a> {
         return to_return;
     }
 
-    fn get_a_l(balance: usize, amounts: &Vec<usize>) -> Vec<ScalarField> {
-        let mut bits: Vec<u8> = Vec::<u8>::with_capacity(Utils::get_n_by_m(amounts.len() + 1));
+    fn get_a_l(balance: usize, amounts: &Vec<usize>, m: usize, n: usize) -> Vec<ScalarField> {
+        let mut bits: Vec<u8> = Vec::<u8>::with_capacity(m * n);
         Utils::number_to_be_bits_reversed(balance)
             .iter()
             .for_each(|bit| bits.push(*bit));

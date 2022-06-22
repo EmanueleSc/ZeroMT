@@ -186,10 +186,6 @@ impl Utils {
             + h_point.mul(h_scalar.into_repr()).into_affine()
     }
 
-    pub fn get_n_by_m(m: usize) -> usize {
-        return Self::get_n() * m;
-    }
-
     pub fn get_n() -> usize {
         return usize::BITS as usize;
     }

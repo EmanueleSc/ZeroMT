@@ -5,9 +5,9 @@ mod zeromt_proof_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use zeromt::{
-        RangeProof, RangeProofProver, RangeProofVerifier, SigmaABProof, SigmaABProver,
-        SigmaABVerifier, SigmaRProof, SigmaRProver, SigmaRVerifier, SigmaSkProof, SigmaSkProver,
-        SigmaSkVerifier, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils,
+        RangeProof, RangeProver, RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier,
+        SigmaRProof, SigmaRProver, SigmaRVerifier, SigmaSkProof, SigmaSkProver, SigmaSkVerifier,
+        SigmaYProof, SigmaYProver, SigmaYVerifier, Utils,
     };
     #[test]
     fn zeromt_proof_test() {
@@ -53,7 +53,7 @@ mod zeromt_proof_tests {
 
         // Proofs generation
         let range_proof: RangeProof =
-            RangeProofProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
+            RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
                 .generate_proof(&mut rng);
 
         let sigma_sk_proof: SigmaSkProof =
@@ -78,9 +78,8 @@ mod zeromt_proof_tests {
                 .generate_proof(&mut rng);
 
         // Proofs verification
-        let range_proof_result =
-            RangeProofVerifier::new(&mut verifier_trans, &g, &h, amounts.len())
-                .verify_proof(&range_proof);
+        let range_proof_result = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len())
+            .verify_proof(&range_proof);
 
         let sigma_sk_result = SigmaSkVerifier::new(&mut verifier_trans, &g, &sender_pub_key)
             .verify_proof(&sigma_sk_proof);
