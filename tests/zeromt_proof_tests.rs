@@ -5,9 +5,10 @@ mod zeromt_proof_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use zeromt::{
-        InnerProofArguments, RangeProof, RangeProver, RangeVerifier, SigmaABProof, SigmaABProver,
-        SigmaABVerifier, SigmaRProof, SigmaRProver, SigmaRVerifier, SigmaSkProof, SigmaSkProver,
-        SigmaSkVerifier, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils,
+        InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof, RangeProver,
+        RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof, SigmaRProver,
+        SigmaRVerifier, SigmaSkProof, SigmaSkProver, SigmaSkVerifier, SigmaYProof, SigmaYProver,
+        SigmaYVerifier, Utils,
     };
     #[test]
     fn zeromt_proof_test() {
@@ -20,7 +21,7 @@ mod zeromt_proof_tests {
         let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
         let balance: usize = 400;
-        let amounts: Vec<usize> = [80, 20, 70, 10].to_vec();
+        let amounts: Vec<usize> = [80, 20, 70, 10, 1, 1, 1].to_vec();
         let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
 
         // Random private keys
@@ -107,11 +108,36 @@ mod zeromt_proof_tests {
         )
         .verify_proof(&sigma_y_proof);
 
+        let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+
+        let inner_proof: InnerProof = InnerProver::new(
+            &mut prover_trans,
+            inner_arguments.get_g_vec(),
+            inner_arguments.get_h_first_vec(),
+            inner_arguments.get_phu(),
+            inner_arguments.get_t_hat(),
+            inner_arguments.get_l(),
+            inner_arguments.get_r(),
+            &u,
+        )
+        .generate_proof();
+
+        let inner_result = InnerVerifier::new(
+            &mut verifier_trans,
+            inner_arguments.get_g_vec(),
+            inner_arguments.get_h_first_vec(),
+            inner_arguments.get_phu(),
+            inner_arguments.get_t_hat(),
+            &u,
+        )
+        .verify_proof(&inner_proof);
+
         let proof_check: bool = range_proof_result.is_ok()
             && sigma_sk_result.is_ok()
             && sigma_r_result.is_ok()
             && sigma_ab_result.is_ok()
-            && sigma_y_result.is_ok();
+            && sigma_y_result.is_ok()
+            && inner_result.is_ok();
 
         if proof_check {
             assert!(true);

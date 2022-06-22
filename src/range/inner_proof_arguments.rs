@@ -1,7 +1,7 @@
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 
 pub struct InnerProofArguments {
-    g: Vec<G1Point>,
+    g_vec: Vec<G1Point>,
     h_first_vec: Vec<G1Point>,
     phu: G1Point,
     t_hat: ScalarField,
@@ -11,7 +11,7 @@ pub struct InnerProofArguments {
 
 impl InnerProofArguments {
     pub fn new(
-        g: Vec<G1Point>,
+        g_vec: Vec<G1Point>,
         h_first_vec: Vec<G1Point>,
         phu: G1Point,
         t_hat: ScalarField,
@@ -19,7 +19,7 @@ impl InnerProofArguments {
         r: Vec<ScalarField>,
     ) -> Self {
         InnerProofArguments {
-            g,
+            g_vec,
             h_first_vec,
             phu,
             t_hat,
@@ -28,8 +28,8 @@ impl InnerProofArguments {
         }
     }
 
-    pub fn get_g(&self) -> &Vec<G1Point> {
-        &self.g
+    pub fn get_g_vec(&self) -> &Vec<G1Point> {
+        &self.g_vec
     }
 
     pub fn get_h_first_vec(&self) -> &Vec<G1Point> {
