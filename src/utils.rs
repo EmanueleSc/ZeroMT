@@ -73,9 +73,9 @@ impl Utils {
     pub fn inner_product_point_scalar(
         points: &Vec<G1Point>,
         scalars: &Vec<ScalarField>,
-    ) -> Result<G1Point, &'static str> {
+    ) -> Result<G1Point, Error> {
         if points.len() != scalars.len() {
-            return Err("Different lengths! Error!");
+            return Err(throw(UtilsError::MathError));
         }
 
         let result: G1Point = points
@@ -92,6 +92,13 @@ impl Utils {
     /// The scalar is multiplied to each scalar of the vector.
     pub fn product_scalar(s: &ScalarField, vec: &Vec<ScalarField>) -> Vec<ScalarField> {
         vec.iter().map(|v: &ScalarField| *v * *s).collect()
+    }
+
+    /// The scalar is multiplied to each point of the vector.
+    pub fn product_scalar_point(s: &ScalarField, vec: &Vec<G1Point>) -> Vec<G1Point> {
+        vec.iter()
+            .map(|v: &G1Point| v.mul(s.into_repr()).into_affine())
+            .collect()
     }
 
     /// The scalar is add to each scalar of the vector.
@@ -135,7 +142,23 @@ impl Utils {
         return Ok(vec_1
             .iter()
             .zip(vec_2.iter())
-            .map(|(s1, s2)| *s1 * *s2)
+            .map(|(s1, s2): (&ScalarField, &ScalarField)| *s1 * *s2)
+            .collect());
+    }
+
+    /// Sum betweeen point vectors
+    pub fn sum_point_point(
+        vec_1: &Vec<G1Point>,
+        vec_2: &Vec<G1Point>,
+    ) -> Result<Vec<G1Point>, Error> {
+        if vec_1.len() != vec_2.len() {
+            return Err(throw(UtilsError::MathError));
+        }
+
+        return Ok(vec_1
+            .iter()
+            .zip(vec_2.iter())
+            .map(|(p1, p2): (&G1Point, &G1Point)| *p1 + *p2)
             .collect());
     }
 
@@ -151,7 +174,7 @@ impl Utils {
         return Ok(vec_1
             .iter()
             .zip(vec_2.iter())
-            .map(|(s1, s2)| *s1 + *s2)
+            .map(|(s1, s2): (&ScalarField, &ScalarField)| *s1 + *s2)
             .collect());
     }
 
@@ -163,11 +186,11 @@ impl Utils {
         g_point_vec: &Vec<G1Point>,
         h_scalar_vec: &Vec<ScalarField>,
         h_point_vec: &Vec<G1Point>,
-    ) -> Result<G1Point, &'static str> {
+    ) -> Result<G1Point, Error> {
         let first_inner_product = Self::inner_product_point_scalar(g_point_vec, g_scalar_vec);
         let second_inner_product = Self::inner_product_point_scalar(h_point_vec, h_scalar_vec);
         if first_inner_product.is_err() || second_inner_product.is_err() {
-            return Err("Inner product error!");
+            return Err(throw(UtilsError::MathError));
         } else {
             return Ok(b_point.mul(b_scalar.into_repr()).into_affine()
                 + first_inner_product.unwrap()
