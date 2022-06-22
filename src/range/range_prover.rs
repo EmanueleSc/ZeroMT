@@ -6,7 +6,10 @@ use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
-use super::{poly_coefficients::PolyCoefficients, poly_vector::PolyVector, range_proof::Proof};
+use super::{
+    inner_proof_arguments::InnerProofArguments, poly_coefficients::PolyCoefficients,
+    poly_vector::PolyVector, range_proof::Proof,
+};
 
 pub struct Prover<'a> {
     transcript: &'a mut Transcript,
@@ -37,7 +40,7 @@ impl<'a> Prover<'a> {
         }
     }
 
-    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
+    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> (Proof, InnerProofArguments) {
         let n: usize = Utils::get_n();
         let m: usize = self.a.len() + 1;
         // println!("Prover started, n: {}, m: {}", n, m);
@@ -45,8 +48,8 @@ impl<'a> Prover<'a> {
         let alpha: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let rho: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
-        let a_l: Vec<ScalarField> = Self::get_a_l(self.b, self.a, m, n);
-        let a_r: Vec<ScalarField> = Self::get_a_r(&a_l);
+        let a_l: Vec<ScalarField> = self.get_a_l(self.b, self.a, m, n);
+        let a_r: Vec<ScalarField> = self.get_a_r(&a_l);
 
         let s_l: Vec<ScalarField> = Utils::get_n_random_scalars(m * n, rng);
         let s_r: Vec<ScalarField> = Utils::get_n_random_scalars(m * n, rng);
@@ -66,8 +69,8 @@ impl<'a> Prover<'a> {
         let y: ScalarField = self.transcript.challenge_scalar(b"y");
         let z: ScalarField = self.transcript.challenge_scalar(b"z");
 
-        let l: PolyVector = Self::get_l_poly_vec(&z, &a_l, &s_l);
-        let r: PolyVector = Self::get_r_poly_vec(m, n, &y, &z, &a_r, &s_r);
+        let l: PolyVector = self.get_l_poly_vec(&z, &a_l, &s_l);
+        let r: PolyVector = self.get_r_poly_vec(m, n, &y, &z, &a_r, &s_r);
 
         let t: PolyCoefficients = PolyCoefficients::new(&l, &r);
 
@@ -110,7 +113,7 @@ impl<'a> Prover<'a> {
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
-        let s_ab: ScalarField = Self::get_s_ab(&k_ab, &c, self.b, &z, self.a);
+        let s_ab: ScalarField = self.get_s_ab(&k_ab, &c, self.b, &z, self.a);
         let s_tau: ScalarField = (tau_x * c) + k_tau;
 
         self.transcript.append_scalar(b"s_ab", &s_ab);
@@ -121,20 +124,61 @@ impl<'a> Prover<'a> {
         println!("p, x {:?}", x);
         println!("p, c {:?}", c);*/
 
-        Proof::new(
-            a_commitment,
-            s_commitment,
-            t_commitment_1,
-            t_commitment_2,
-            t_hat,
-            mu,
-            a_t_commitment,
-            s_ab,
-            s_tau,
+        let h_first_vec: Vec<G1Point> = (0..m * n)
+            .map(|i: usize| {
+                h_vec[i]
+                    .mul((ScalarField::from(1) / (y.pow([(i as u64)]))).into_repr())
+                    .into_affine()
+            })
+            .collect();
+
+        let p: G1Point = a_commitment
+            + s_commitment.mul(x.into_repr()).into_affine()
+            + -Utils::inner_product_point_scalar(
+                &g_vec,
+                &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one()),
+            )
+            .unwrap()
+            .mul((z).into_repr())
+            .into_affine()
+            + Utils::inner_product_point_scalar(
+                &h_first_vec,
+                &Utils::generate_scalar_exp_vector(m * n, &y),
+            )
+            .unwrap()
+            .mul((z).into_repr())
+            .into_affine()
+            + (1..=m)
+                .map(|j: usize| {
+                    Utils::inner_product_point_scalar(
+                        &h_first_vec[((j - 1) * n)..(j * n)].to_vec(),
+                        &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2)),
+                    )
+                    .unwrap()
+                    .mul((z.pow([1 + (j as u64)])).into_repr())
+                    .into_affine()
+                })
+                .sum::<G1Point>();
+        let phu: G1Point = p + -self.h.mul(mu.into_repr()).into_affine();
+
+        (
+            Proof::new(
+                a_commitment,
+                s_commitment,
+                t_commitment_1,
+                t_commitment_2,
+                t_hat,
+                mu,
+                a_t_commitment,
+                s_ab,
+                s_tau,
+            ),
+            InnerProofArguments::new(g_vec, h_first_vec, phu, t_hat, l_poly_vec, r_poly_vec),
         )
     }
 
     fn get_s_ab(
+        &mut self,
         k_ab: &ScalarField,
         c: &ScalarField,
         b: usize,
@@ -151,7 +195,7 @@ impl<'a> Prover<'a> {
         *k_ab + (*c * right)
     }
 
-    fn generate_zero_two_zero_vec(m: usize, n: usize, j: usize) -> Vec<ScalarField> {
+    fn generate_zero_two_zero_vec(&mut self, m: usize, n: usize, j: usize) -> Vec<ScalarField> {
         let mut to_return: Vec<ScalarField> = Vec::<ScalarField>::with_capacity(m * n);
 
         to_return.append(&mut (0..((j - 1) * n)).map(|_| ScalarField::zero()).collect());
@@ -166,7 +210,13 @@ impl<'a> Prover<'a> {
         return to_return;
     }
 
-    fn get_a_l(balance: usize, amounts: &Vec<usize>, m: usize, n: usize) -> Vec<ScalarField> {
+    fn get_a_l(
+        &mut self,
+        balance: usize,
+        amounts: &Vec<usize>,
+        m: usize,
+        n: usize,
+    ) -> Vec<ScalarField> {
         let mut bits: Vec<u8> = Vec::<u8>::with_capacity(m * n);
         Utils::number_to_be_bits_reversed(balance)
             .iter()
@@ -182,20 +232,20 @@ impl<'a> Prover<'a> {
         return bits.iter().map(|bit| ScalarField::from(*bit)).collect();
     }
 
-    fn get_a_r(a_l: &Vec<ScalarField>) -> Vec<ScalarField> {
+    fn get_a_r(&mut self, a_l: &Vec<ScalarField>) -> Vec<ScalarField> {
         return a_l.iter().map(|bit| *bit - ScalarField::one()).collect();
     }
 
-    fn get_y_vec(m: usize, n: usize, y: &ScalarField) -> Vec<ScalarField> {
+    fn get_y_vec(&mut self, m: usize, n: usize, y: &ScalarField) -> Vec<ScalarField> {
         Utils::generate_scalar_exp_vector(m * n, y)
     }
 
-    fn get_z_vec(m: usize, n: usize, z: &ScalarField) -> Vec<ScalarField> {
+    fn get_z_vec(&mut self, m: usize, n: usize, z: &ScalarField) -> Vec<ScalarField> {
         (1..=m)
             .map(|j: usize| {
                 Utils::product_scalar(
                     &z.pow([(1 + j) as u64]),
-                    &Self::generate_zero_two_zero_vec(m, n, j),
+                    &self.generate_zero_two_zero_vec(m, n, j),
                 )
             })
             .reduce(|accum: Vec<ScalarField>, item: Vec<ScalarField>| {
@@ -205,6 +255,7 @@ impl<'a> Prover<'a> {
     }
 
     fn get_l_poly_vec(
+        &mut self,
         z: &ScalarField,
         a_l: &Vec<ScalarField>,
         s_l: &Vec<ScalarField>,
@@ -216,6 +267,7 @@ impl<'a> Prover<'a> {
     }
 
     fn get_r_poly_vec(
+        &mut self,
         m: usize,
         n: usize,
         y: &ScalarField,
@@ -223,8 +275,8 @@ impl<'a> Prover<'a> {
         a_r: &Vec<ScalarField>,
         s_r: &Vec<ScalarField>,
     ) -> PolyVector {
-        let y_vec: Vec<ScalarField> = Self::get_y_vec(m, n, &y);
-        let z_vec: Vec<ScalarField> = Self::get_z_vec(m, n, &z);
+        let y_vec: Vec<ScalarField> = self.get_y_vec(m, n, &y);
+        let z_vec: Vec<ScalarField> = self.get_z_vec(m, n, &z);
 
         let r_vec_left_hadamard: Vec<ScalarField> =
             Utils::hadamard_product_scalar_scalar(&y_vec, &Utils::sum_scalar(&z, &a_r)).unwrap();

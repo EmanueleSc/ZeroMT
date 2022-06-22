@@ -5,9 +5,9 @@ mod zeromt_proof_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use zeromt::{
-        RangeProof, RangeProver, RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier,
-        SigmaRProof, SigmaRProver, SigmaRVerifier, SigmaSkProof, SigmaSkProver, SigmaSkVerifier,
-        SigmaYProof, SigmaYProver, SigmaYVerifier, Utils,
+        InnerProofArguments, RangeProof, RangeProver, RangeVerifier, SigmaABProof, SigmaABProver,
+        SigmaABVerifier, SigmaRProof, SigmaRProver, SigmaRVerifier, SigmaSkProof, SigmaSkProver,
+        SigmaSkVerifier, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils,
     };
     #[test]
     fn zeromt_proof_test() {
@@ -52,7 +52,7 @@ mod zeromt_proof_tests {
             .collect();
 
         // Proofs generation
-        let range_proof: RangeProof =
+        let (range_proof, inner_arguments): (RangeProof, InnerProofArguments) =
             RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
                 .generate_proof(&mut rng);
 

@@ -16,6 +16,7 @@ pub use crate::inner::inner_proof::Proof as InnerProof;
 pub use crate::inner::inner_prover::Prover as InnerProver;
 pub use crate::inner::inner_verifier::Verifier as InnerVerifier;
 
+pub use crate::range::inner_proof_arguments::InnerProofArguments;
 pub use crate::range::range_proof::Proof as RangeProof;
 pub use crate::range::range_prover::Prover as RangeProver;
 pub use crate::range::range_verifier::Verifier as RangeVerifier;

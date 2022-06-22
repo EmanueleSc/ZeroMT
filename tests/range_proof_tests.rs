@@ -4,7 +4,10 @@ mod range_proof_tests {
 
     use ark_bn254::G1Affine as G1Point;
     use merlin::Transcript;
-    use zeromt::{RangeProof as Proof, RangeProver as Prover, RangeVerifier as Verifier, Utils};
+    use zeromt::{
+        InnerProofArguments, RangeProof as Proof, RangeProver as Prover, RangeVerifier as Verifier,
+        Utils,
+    };
     #[test]
     fn verify_range_proof_test() {
         let mut prover_trans: Transcript = Transcript::new(b"BulletproofsTest");
@@ -20,7 +23,8 @@ mod range_proof_tests {
         let mut prover: Prover =
             Prover::new(&mut prover_trans, &g, &h, balance_remaining, &amounts);
 
-        let proof: Proof = prover.generate_proof(&mut rng);
+        let (proof, inner_arguments): (Proof, InnerProofArguments) =
+            prover.generate_proof(&mut rng);
 
         let mut verifier: Verifier = Verifier::new(&mut verifier_trans, &g, &h, amounts.len());
 
