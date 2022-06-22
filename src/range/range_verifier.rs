@@ -36,7 +36,6 @@ impl<'a> Verifier<'a> {
     pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
         let n: usize = Utils::get_n();
         let m: usize = self.amounts + 1;
-        //println!("Verifier started, n: {}, m: {}", n, m);
 
         self.transcript.append_point(b"A", proof.get_a());
         self.transcript.append_point(b"S", proof.get_s());
@@ -57,11 +56,6 @@ impl<'a> Verifier<'a> {
 
         self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
         self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
-
-        /*println!("v, y {:?}", y);
-        println!("v, z {:?}", z);
-        println!("v, x {:?}", x);
-        println!("v, c {:?}", c);*/
 
         let delta_left: ScalarField = (z - (z * z))
             * Utils::generate_scalar_exp_vector(m * n, &y)

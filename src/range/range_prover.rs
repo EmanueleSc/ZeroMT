@@ -43,7 +43,6 @@ impl<'a> Prover<'a> {
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> (Proof, InnerProofArguments) {
         let n: usize = Utils::get_n();
         let m: usize = self.a.len() + 1;
-        // println!("Prover started, n: {}, m: {}", n, m);
 
         let alpha: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let rho: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
@@ -94,10 +93,6 @@ impl<'a> Prover<'a> {
         let t_hat: ScalarField =
             Utils::inner_product_scalar_scalar(&l_poly_vec, &r_poly_vec).unwrap();
 
-        // let t_x: ScalarField = t.evaluate(&x);
-        // println!("Check {:?}", t_hat == t_x);
-
-        // Theoretical doubt
         let tau_x: ScalarField = (x * tau_1) + (x * x * tau_2);
 
         let mu: ScalarField = alpha + rho * x;
@@ -119,15 +114,10 @@ impl<'a> Prover<'a> {
         self.transcript.append_scalar(b"s_ab", &s_ab);
         self.transcript.append_scalar(b"s_tau", &s_tau);
 
-        /*println!("p, y {:?}", y);
-        println!("p, z {:?}", z);
-        println!("p, x {:?}", x);
-        println!("p, c {:?}", c);*/
-
         let h_first_vec: Vec<G1Point> = (0..m * n)
             .map(|i: usize| {
                 h_vec[i]
-                    .mul((ScalarField::from(1) / (y.pow([(i as u64)]))).into_repr())
+                    .mul(y.pow([(i as u64)]).inverse().unwrap().into_repr())
                     .into_affine()
             })
             .collect();
