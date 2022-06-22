@@ -64,7 +64,7 @@ impl<'a> Prover<'a> {
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
-        let s_ab: ScalarField = Self::get_s_ab(&k_ab, &c, self.b, &z, self.a);
+        let s_ab: ScalarField = self.get_s_ab(&k_ab, &c, self.b, &z, self.a);
 
         let s_sk: ScalarField = (*self.sk * c) + k_sk;
 
@@ -75,6 +75,7 @@ impl<'a> Prover<'a> {
     }
 
     fn get_s_ab(
+        &mut self,
         k_ab: &ScalarField,
         c: &ScalarField,
         b: usize,
