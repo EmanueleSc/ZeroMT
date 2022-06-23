@@ -1,3 +1,5 @@
+#![feature(int_log)]
+
 mod errors;
 mod inner;
 mod range;

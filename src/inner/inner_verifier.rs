@@ -42,8 +42,108 @@ impl<'a> Verifier<'a> {
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
+        let mut x_vec: Vec<ScalarField> = [].to_vec();
 
-        self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof)
+        self.inner_product_argument_opt(
+            self.g_vec,
+            self.h_vec,
+            &ux,
+            &p_first,
+            proof,
+            &mut x_vec,
+            self.g_vec.len(),
+        )
+    }
+
+    fn bit_function(&mut self, i: usize, j: usize) -> bool {
+        let bits: Vec<u8> = Utils::number_to_be_bits_reversed(i);
+
+        if bits[j] == 1 {
+            true
+        } else {
+            false
+        }
+    }
+    fn get_s_vector(&mut self, x_vec: &mut Vec<ScalarField>, n: usize) -> Vec<ScalarField> {
+        (0..n)
+            .map(|i: usize| {
+                (0..n.log2())
+                    .map(|j| {
+                        if self.bit_function(i, j as usize) {
+                            x_vec[j as usize]
+                        } else {
+                            x_vec[j as usize].inverse().unwrap()
+                        }
+                    })
+                    .reduce(|accum: ScalarField, item: ScalarField| accum * item)
+                    .unwrap()
+            })
+            .collect()
+    }
+
+    fn inner_product_argument_opt(
+        &mut self,
+        g_vec: &Vec<G1Point>,
+        h_vec: &Vec<G1Point>,
+        u: &G1Point,
+        p: &G1Point,
+        proof: &Proof,
+        x_vec: &mut Vec<ScalarField>,
+        n: usize,
+    ) -> Result<(), Error> {
+        if n == 1 {
+            x_vec.reverse();
+
+            let a: ScalarField = *proof.get_a();
+            let b: ScalarField = *proof.get_b();
+
+            self.transcript.append_scalar(b"a", &a);
+            self.transcript.append_scalar(b"b", &b);
+
+            let c: ScalarField = a * b;
+
+            let s: Vec<ScalarField> = self.get_s_vector(x_vec, g_vec.len());
+            let s_inverse: Vec<ScalarField> = s
+                .iter()
+                .map(|scal: &ScalarField| scal.inverse().unwrap())
+                .collect();
+
+            let g: G1Point = Utils::inner_product_point_scalar(&g_vec, &s).unwrap();
+            let h: G1Point = Utils::inner_product_point_scalar(&h_vec, &s_inverse).unwrap();
+
+            let to_check: G1Point = g.mul(a.into_repr()).into_affine()
+                + h.mul(b.into_repr()).into_affine()
+                + u.mul(c.into_repr()).into_affine();
+
+            if *p == to_check {
+                return Ok(());
+            } else {
+                return Err(throw(ProofError::ProofValidationError));
+            }
+        } else {
+            let n_first = n / 2;
+
+            let l: G1Point = proof.get_l_vec()[0];
+            let r: G1Point = proof.get_r_vec()[0];
+            self.transcript.append_point(b"l", &l);
+            self.transcript.append_point(b"r", &r);
+            let x: ScalarField = self.transcript.challenge_scalar(b"x");
+
+            x_vec.push(x);
+            let p_first: G1Point = l.mul(x.pow([2]).into_repr()).into_affine()
+                + *p
+                + r.mul(x.pow([2]).inverse().unwrap().into_repr())
+                    .into_affine();
+
+            let rec_proof: Proof = Proof::new(
+                *proof.get_a(),
+                *proof.get_b(),
+                proof.get_l_vec()[1..].to_vec(),
+                proof.get_r_vec()[1..].to_vec(),
+            );
+
+            self.inner_product_argument_opt(g_vec, h_vec, u, &p_first, &rec_proof, x_vec, n_first)
+        }
     }
 
     fn inner_product_argument(
