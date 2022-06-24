@@ -130,7 +130,7 @@ mod zeromt_proof_tests {
             inner_arguments.get_t_hat(),
             &u,
         )
-        .verify_proof(&inner_proof);
+        .verify_proof_multiscalar(&inner_proof);
 
         let proof_check: bool = range_proof_result.is_ok()
             && sigma_sk_result.is_ok()

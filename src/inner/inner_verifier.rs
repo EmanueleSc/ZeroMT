@@ -44,13 +44,21 @@ impl<'a> Verifier<'a> {
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
         let mut x_vec: Vec<ScalarField> = [].to_vec();
 
-        self.inner_product_argument_opt(
+        self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof)
+    }
+
+    pub fn verify_proof_multiscalar(&mut self, proof: &Proof) -> Result<(), Error> {
+        let x: ScalarField = self.transcript.challenge_scalar(b"x");
+        let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
+        let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
+
+        self.inner_product_argument_multiscalar(
             self.g_vec,
             self.h_vec,
             &ux,
             &p_first,
             proof,
-            &mut x_vec,
+            &mut [].to_vec(),
             self.g_vec.len(),
         )
     }
@@ -81,7 +89,7 @@ impl<'a> Verifier<'a> {
             .collect()
     }
 
-    fn inner_product_argument_opt(
+    fn inner_product_argument_multiscalar(
         &mut self,
         g_vec: &Vec<G1Point>,
         h_vec: &Vec<G1Point>,
@@ -92,8 +100,6 @@ impl<'a> Verifier<'a> {
         n: usize,
     ) -> Result<(), Error> {
         if n == 1 {
-            x_vec.reverse();
-
             let a: ScalarField = *proof.get_a();
             let b: ScalarField = *proof.get_b();
 
@@ -129,7 +135,9 @@ impl<'a> Verifier<'a> {
             self.transcript.append_point(b"r", &r);
             let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
-            x_vec.push(x);
+            let mut x_vec_first: Vec<ScalarField> = [x].to_vec();
+            x_vec_first.append(x_vec);
+
             let p_first: G1Point = l.mul(x.pow([2]).into_repr()).into_affine()
                 + *p
                 + r.mul(x.pow([2]).inverse().unwrap().into_repr())
@@ -142,7 +150,15 @@ impl<'a> Verifier<'a> {
                 proof.get_r_vec()[1..].to_vec(),
             );
 
-            self.inner_product_argument_opt(g_vec, h_vec, u, &p_first, &rec_proof, x_vec, n_first)
+            self.inner_product_argument_multiscalar(
+                g_vec,
+                h_vec,
+                u,
+                &p_first,
+                &rec_proof,
+                &mut x_vec_first,
+                n_first,
+            )
         }
     }
 
