@@ -1,13 +1,13 @@
 use crate::transcript::TranscriptProtocol;
 use crate::ProofError;
-use crate::{errors::proof_error::throw, sigma_y::sigma_y_proof::Proof};
+use crate::{errors::proof_error::throw, sigma_y::sigma_y_proof::SigmaYProof};
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::PrimeField;
 use merlin::Transcript;
 use std::io::Error;
 
-pub struct Verifier<'a> {
+pub struct SigmaYVerifier<'a> {
     transcript: &'a mut Transcript,
     y: &'a G1Point,
     y_bar: &'a Vec<G1Point>,
@@ -15,7 +15,7 @@ pub struct Verifier<'a> {
     c_bar_vec: &'a Vec<G1Point>,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a> SigmaYVerifier<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         y: &'a G1Point,
@@ -24,7 +24,7 @@ impl<'a> Verifier<'a> {
         c_bar_vec: &'a Vec<G1Point>,
     ) -> Self {
         transcript.domain_sep(b"SigmaY");
-        Verifier {
+        SigmaYVerifier {
             transcript,
             y,
             y_bar,
@@ -33,7 +33,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
+    pub fn verify_proof(&mut self, proof: &SigmaYProof) -> Result<(), Error> {
         self.transcript
             .append_point(b"A_y_bar", proof.get_a_y_bar());
 

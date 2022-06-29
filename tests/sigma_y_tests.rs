@@ -7,7 +7,7 @@ mod sigma_y_tests {
     use ark_ff::{Field, One, PrimeField, Zero};
     use ark_std::rand::Rng;
     use merlin::Transcript;
-    use zeromt::{SigmaYProof as Proof, SigmaYProver as Prover, SigmaYVerifier as Verifier, Utils};
+    use zeromt::{SigmaYProof, SigmaYProver, SigmaYVerifier, Utils};
 
     #[test]
     fn verify_sigma_y_test() {
@@ -50,12 +50,12 @@ mod sigma_y_tests {
             .map(|(a, k)| Utils::elgamal_encrypt(*a, k, &g, &r).0)
             .collect();
 
-        let mut prover: Prover =
-            Prover::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
+        let mut prover: SigmaYProver =
+            SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
 
-        let proof: Proof = prover.generate_proof(&mut rng);
+        let proof: SigmaYProof = prover.generate_proof(&mut rng);
 
-        let mut verifier: Verifier = Verifier::new(
+        let mut verifier: SigmaYVerifier = SigmaYVerifier::new(
             &mut verifier_trans,
             &sender_pub_key,
             &recipients_pub_keys,

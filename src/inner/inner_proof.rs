@@ -1,16 +1,17 @@
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
+use ark_serialize::*;
 
-#[derive(Debug)]
-pub struct Proof {
+#[derive(Debug, CanonicalDeserialize, CanonicalSerialize)]
+pub struct InnerProof {
     a: ScalarField,
     b: ScalarField,
     l_vec: Vec<G1Point>,
     r_vec: Vec<G1Point>,
 }
 
-impl Proof {
+impl InnerProof {
     pub fn new(a: ScalarField, b: ScalarField, l_vec: Vec<G1Point>, r_vec: Vec<G1Point>) -> Self {
-        Proof { a, b, l_vec, r_vec }
+        InnerProof { a, b, l_vec, r_vec }
     }
 
     pub fn get_a(&self) -> &ScalarField {

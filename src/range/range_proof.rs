@@ -1,7 +1,9 @@
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 
-#[derive(Debug)]
-pub struct Proof {
+use ark_serialize::*;
+
+#[derive(Debug, CanonicalDeserialize, CanonicalSerialize)]
+pub struct RangeProof {
     a: G1Point,
     s: G1Point,
     t_1: G1Point,
@@ -12,8 +14,7 @@ pub struct Proof {
     s_ab: ScalarField,
     s_tau: ScalarField,
 }
-
-impl Proof {
+impl RangeProof {
     pub fn new(
         a: G1Point,
         s: G1Point,
@@ -25,7 +26,7 @@ impl Proof {
         s_ab: ScalarField,
         s_tau: ScalarField,
     ) -> Self {
-        Proof {
+        RangeProof {
             a,
             s,
             t_1,

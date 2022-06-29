@@ -1,13 +1,13 @@
 use crate::transcript::TranscriptProtocol;
 use crate::ProofError;
-use crate::{errors::proof_error::throw, sigma_ab::sigma_ab_proof::Proof};
+use crate::{errors::proof_error::throw, sigma_ab::sigma_ab_proof::SigmaABProof};
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::{Field, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
-pub struct Verifier<'a> {
+pub struct SigmaABVerifier<'a> {
     transcript: &'a mut Transcript,
     /// public generator
     g: &'a G1Point,
@@ -18,7 +18,7 @@ pub struct Verifier<'a> {
     a: usize,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a> SigmaABVerifier<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         g: &'a G1Point,
@@ -30,7 +30,7 @@ impl<'a> Verifier<'a> {
     ) -> Self {
         transcript.domain_sep(b"SigmaAB");
 
-        Verifier {
+        SigmaABVerifier {
             transcript,
             g,
             d,
@@ -41,7 +41,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
+    pub fn verify_proof(&mut self, proof: &SigmaABProof) -> Result<(), Error> {
         let z: ScalarField = self.transcript.challenge_scalar(b"z");
 
         self.transcript.append_point(b"A_ab", proof.get_a_ab());

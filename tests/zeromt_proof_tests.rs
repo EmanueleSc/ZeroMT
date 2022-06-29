@@ -7,7 +7,7 @@ mod zeromt_proof_tests {
     use zeromt::{
         InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof, RangeProver,
         RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof, SigmaRProver,
-        SigmaRVerifier, SigmaSkProof, SigmaSkProver, SigmaSkVerifier, SigmaYProof, SigmaYProver,
+        SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof, SigmaYProver,
         SigmaYVerifier, Utils,
     };
     #[test]
@@ -57,8 +57,8 @@ mod zeromt_proof_tests {
             RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
                 .generate_proof(&mut rng);
 
-        let sigma_sk_proof: SigmaSkProof =
-            SigmaSkProver::new(&mut prover_trans, &g, &sender_priv_key).generate_proof(&mut rng);
+        let sigma_sk_proof: SigmaSKProof =
+            SigmaSKProver::new(&mut prover_trans, &g, &sender_priv_key).generate_proof(&mut rng);
 
         let sigma_r_proof: SigmaRProof =
             SigmaRProver::new(&mut prover_trans, &g, &r).generate_proof(&mut rng);
@@ -82,7 +82,7 @@ mod zeromt_proof_tests {
         let range_proof_result = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len())
             .verify_proof(&range_proof);
 
-        let sigma_sk_result = SigmaSkVerifier::new(&mut verifier_trans, &g, &sender_pub_key)
+        let sigma_sk_result = SigmaSKVerifier::new(&mut verifier_trans, &g, &sender_pub_key)
             .verify_proof(&sigma_sk_proof);
 
         let sigma_r_result =

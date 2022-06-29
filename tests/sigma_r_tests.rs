@@ -6,7 +6,7 @@ mod sigma_sk_tests {
     use ark_ec::{AffineCurve, ProjectiveCurve};
     use ark_ff::PrimeField;
     use merlin::Transcript;
-    use zeromt::{SigmaRProof as Proof, SigmaRProver as Prover, SigmaRVerifier as Verifier, Utils};
+    use zeromt::{SigmaRProof, SigmaRProver, SigmaRVerifier, Utils};
     #[test]
     fn verify_sigma_r_test() {
         let mut prover_trans: Transcript = Transcript::new(b"SigmaRTest");
@@ -18,11 +18,11 @@ mod sigma_sk_tests {
         let g: G1Point = Utils::get_curve_generator();
         let d: G1Point = g.mul(r.into_repr()).into_affine();
 
-        let mut prover: Prover = Prover::new(&mut prover_trans, &g, &r);
+        let mut prover: SigmaRProver = SigmaRProver::new(&mut prover_trans, &g, &r);
 
-        let proof: Proof = prover.generate_proof(&mut rng);
+        let proof: SigmaRProof = prover.generate_proof(&mut rng);
 
-        let mut verifier: Verifier = Verifier::new(&mut verifier_trans, &g, &d);
+        let mut verifier: SigmaRVerifier = SigmaRVerifier::new(&mut verifier_trans, &g, &d);
         let result = verifier.verify_proof(&proof);
 
         if result.is_ok() {

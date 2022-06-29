@@ -7,9 +7,7 @@ mod sigma_ab_tests {
     use ark_ff::{Field, One, PrimeField, Zero};
     use ark_std::rand::Rng;
     use merlin::Transcript;
-    use zeromt::{
-        SigmaABProof as Proof, SigmaABProver as Prover, SigmaABVerifier as Verifier, Utils,
-    };
+    use zeromt::{SigmaABProof, SigmaABProver, SigmaABVerifier, Utils};
 
     #[test]
     fn verify_sigma_ab_test() {
@@ -52,7 +50,7 @@ mod sigma_ab_tests {
             .map(|(a, k)| Utils::elgamal_encrypt(*a, k, &g, &r).0)
             .collect();
 
-        let mut prover: Prover = Prover::new(
+        let mut prover: SigmaABProver = SigmaABProver::new(
             &mut prover_trans,
             &g,
             &d,
@@ -62,9 +60,9 @@ mod sigma_ab_tests {
             &sender_priv_key,
         );
 
-        let proof: Proof = prover.generate_proof(&mut rng);
+        let proof: SigmaABProof = prover.generate_proof(&mut rng);
 
-        let mut verifier: Verifier = Verifier::new(
+        let mut verifier: SigmaABVerifier = SigmaABVerifier::new(
             &mut verifier_trans,
             &g,
             &d,

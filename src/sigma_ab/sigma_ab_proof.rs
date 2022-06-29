@@ -1,15 +1,17 @@
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 
-#[derive(Debug)]
-pub struct Proof {
+use ark_serialize::*;
+
+#[derive(Debug, CanonicalDeserialize, CanonicalSerialize)]
+pub struct SigmaABProof {
     a_ab: G1Point,
     s_sk: ScalarField,
     s_ab: ScalarField,
 }
 
-impl Proof {
+impl SigmaABProof {
     pub fn new(a_ab: G1Point, s_sk: ScalarField, s_ab: ScalarField) -> Self {
-        Proof { a_ab, s_sk, s_ab }
+        SigmaABProof { a_ab, s_sk, s_ab }
     }
 
     pub fn get_a_ab(&self) -> &G1Point {

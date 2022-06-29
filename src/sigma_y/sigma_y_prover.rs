@@ -1,4 +1,4 @@
-use crate::sigma_y::sigma_y_proof::Proof;
+use crate::sigma_y::sigma_y_proof::SigmaYProof;
 use crate::transcript::TranscriptProtocol;
 use crate::utils::Utils;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
@@ -7,14 +7,14 @@ use ark_ff::PrimeField;
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
-pub struct Prover<'a> {
+pub struct SigmaYProver<'a> {
     transcript: &'a mut Transcript,
     r: &'a ScalarField,
     y: &'a G1Point,
     y_bar: &'a Vec<G1Point>,
 }
 
-impl<'a> Prover<'a> {
+impl<'a> SigmaYProver<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         r: &'a ScalarField,
@@ -22,7 +22,7 @@ impl<'a> Prover<'a> {
         y_bar: &'a Vec<G1Point>,
     ) -> Self {
         transcript.domain_sep(b"SigmaY");
-        Prover {
+        SigmaYProver {
             transcript,
             r,
             y,
@@ -30,7 +30,7 @@ impl<'a> Prover<'a> {
         }
     }
 
-    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> Proof {
+    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> SigmaYProof {
         let k_r: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
         let a_y_bar: G1Point = self
@@ -47,6 +47,6 @@ impl<'a> Prover<'a> {
         let s_r: ScalarField = (*self.r * c) + k_r;
         self.transcript.append_scalar(b"s_r", &s_r);
 
-        Proof::new(a_y_bar, s_r)
+        SigmaYProof::new(a_y_bar, s_r)
     }
 }

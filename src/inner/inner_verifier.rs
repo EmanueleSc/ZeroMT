@@ -7,9 +7,9 @@ use ark_ff::{Field, One, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
-use super::inner_proof::Proof;
+use super::inner_proof::InnerProof;
 
-pub struct Verifier<'a> {
+pub struct InnerVerifier<'a> {
     transcript: &'a mut Transcript,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
@@ -18,7 +18,7 @@ pub struct Verifier<'a> {
     u: &'a G1Point,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a> InnerVerifier<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         g_vec: &'a Vec<G1Point>,
@@ -28,7 +28,7 @@ impl<'a> Verifier<'a> {
         u: &'a G1Point,
     ) -> Self {
         transcript.domain_sep(b"InnerProductArgument");
-        Verifier {
+        InnerVerifier {
             transcript,
             g_vec,
             h_vec,
@@ -38,7 +38,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
+    pub fn verify_proof(&mut self, proof: &InnerProof) -> Result<(), Error> {
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
@@ -47,7 +47,7 @@ impl<'a> Verifier<'a> {
         self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof)
     }
 
-    pub fn verify_proof_multiscalar(&mut self, proof: &Proof) -> Result<(), Error> {
+    pub fn verify_proof_multiscalar(&mut self, proof: &InnerProof) -> Result<(), Error> {
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
@@ -95,7 +95,7 @@ impl<'a> Verifier<'a> {
         h_vec: &Vec<G1Point>,
         u: &G1Point,
         p: &G1Point,
-        proof: &Proof,
+        proof: &InnerProof,
         x_vec: &mut Vec<ScalarField>,
         n: usize,
     ) -> Result<(), Error> {
@@ -143,7 +143,7 @@ impl<'a> Verifier<'a> {
                 + r.mul(x.pow([2]).inverse().unwrap().into_repr())
                     .into_affine();
 
-            let rec_proof: Proof = Proof::new(
+            let rec_proof: InnerProof = InnerProof::new(
                 *proof.get_a(),
                 *proof.get_b(),
                 proof.get_l_vec()[1..].to_vec(),
@@ -168,7 +168,7 @@ impl<'a> Verifier<'a> {
         h_vec: &Vec<G1Point>,
         u: &G1Point,
         p: &G1Point,
-        proof: &Proof,
+        proof: &InnerProof,
     ) -> Result<(), Error> {
         let n: usize = g_vec.len();
         if n == 1 {
@@ -223,7 +223,7 @@ impl<'a> Verifier<'a> {
                 + r.mul(x.pow([2]).inverse().unwrap().into_repr())
                     .into_affine();
 
-            let rec_proof: Proof = Proof::new(
+            let rec_proof: InnerProof = InnerProof::new(
                 *proof.get_a(),
                 *proof.get_b(),
                 proof.get_l_vec()[1..].to_vec(),

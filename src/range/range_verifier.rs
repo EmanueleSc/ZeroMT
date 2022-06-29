@@ -7,9 +7,9 @@ use ark_ff::{Field, One, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
-use super::range_proof::Proof;
+use super::range_proof::RangeProof;
 
-pub struct Verifier<'a> {
+pub struct RangeVerifier<'a> {
     transcript: &'a mut Transcript,
     amounts: usize,
     /// public generator
@@ -17,7 +17,7 @@ pub struct Verifier<'a> {
     h: &'a G1Point,
 }
 
-impl<'a> Verifier<'a> {
+impl<'a> RangeVerifier<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         g: &'a G1Point,
@@ -25,7 +25,7 @@ impl<'a> Verifier<'a> {
         amounts: usize,
     ) -> Self {
         transcript.domain_sep(b"RangeProof");
-        Verifier {
+        RangeVerifier {
             transcript,
             g,
             h,
@@ -33,7 +33,7 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &Proof) -> Result<(), Error> {
+    pub fn verify_proof(&mut self, proof: &RangeProof) -> Result<(), Error> {
         let n: usize = Utils::get_n();
         let m: usize = self.amounts + 1;
 

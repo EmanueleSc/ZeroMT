@@ -8,10 +8,10 @@ use merlin::Transcript;
 
 use super::{
     inner_proof_arguments::InnerProofArguments, poly_coefficients::PolyCoefficients,
-    poly_vector::PolyVector, range_proof::Proof,
+    poly_vector::PolyVector, range_proof::RangeProof,
 };
 
-pub struct Prover<'a> {
+pub struct RangeProver<'a> {
     transcript: &'a mut Transcript,
     /// public generator
     g: &'a G1Point,
@@ -22,7 +22,7 @@ pub struct Prover<'a> {
     a: &'a Vec<usize>,
 }
 
-impl<'a> Prover<'a> {
+impl<'a> RangeProver<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         g: &'a G1Point,
@@ -31,7 +31,7 @@ impl<'a> Prover<'a> {
         a: &'a Vec<usize>,
     ) -> Self {
         transcript.domain_sep(b"RangeProof");
-        Prover {
+        RangeProver {
             transcript,
             g,
             h,
@@ -40,7 +40,7 @@ impl<'a> Prover<'a> {
         }
     }
 
-    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> (Proof, InnerProofArguments) {
+    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> (RangeProof, InnerProofArguments) {
         let n: usize = Utils::get_n();
         let m: usize = self.a.len() + 1;
 
@@ -152,7 +152,7 @@ impl<'a> Prover<'a> {
         let phu: G1Point = p + -self.h.mul(mu.into_repr()).into_affine();
 
         (
-            Proof::new(
+            RangeProof::new(
                 a_commitment,
                 s_commitment,
                 t_commitment_1,

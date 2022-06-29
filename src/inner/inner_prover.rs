@@ -6,9 +6,9 @@ use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
-use super::inner_proof::Proof;
+use super::inner_proof::InnerProof;
 
-pub struct Prover<'a> {
+pub struct InnerProver<'a> {
     transcript: &'a mut Transcript,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
@@ -19,7 +19,7 @@ pub struct Prover<'a> {
     u: &'a G1Point,
 }
 
-impl<'a> Prover<'a> {
+impl<'a> InnerProver<'a> {
     pub fn new(
         transcript: &'a mut Transcript,
         g_vec: &'a Vec<G1Point>,
@@ -31,7 +31,7 @@ impl<'a> Prover<'a> {
         u: &'a G1Point,
     ) -> Self {
         transcript.domain_sep(b"InnerProductArgument");
-        Prover {
+        InnerProver {
             transcript,
             g_vec,
             h_vec,
@@ -43,7 +43,7 @@ impl<'a> Prover<'a> {
         }
     }
 
-    pub fn generate_proof(&mut self) -> Proof {
+    pub fn generate_proof(&mut self) -> InnerProof {
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
@@ -61,14 +61,14 @@ impl<'a> Prover<'a> {
         p: &G1Point,
         a_vec: &Vec<ScalarField>,
         b_vec: &Vec<ScalarField>,
-    ) -> Proof {
+    ) -> InnerProof {
         let n: usize = g_vec.len();
         if n == 1 {
             let a: ScalarField = a_vec[0];
             let b: ScalarField = b_vec[0];
             self.transcript.append_scalar(b"a", &a);
             self.transcript.append_scalar(b"b", &b);
-            Proof::new(a, b, [].to_vec(), [].to_vec())
+            InnerProof::new(a, b, [].to_vec(), [].to_vec())
         } else {
             let n_first = n / 2;
 
@@ -129,12 +129,12 @@ impl<'a> Prover<'a> {
             let b_first: Vec<ScalarField> =
                 Utils::sum_scalar_scalar(&b_first_left, &b_first_right).unwrap();
 
-            let rec_proof: Proof =
+            let rec_proof: InnerProof =
                 self.inner_product_argument(&g_first, &h_first, u, &p_first, &a_first, &b_first);
             l_vec.append(&mut rec_proof.get_l_vec().clone());
             r_vec.append(&mut rec_proof.get_r_vec().clone());
 
-            Proof::new(*rec_proof.get_a(), *rec_proof.get_b(), l_vec, r_vec)
+            InnerProof::new(*rec_proof.get_a(), *rec_proof.get_b(), l_vec, r_vec)
         }
     }
 }
