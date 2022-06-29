@@ -15,7 +15,7 @@ pub trait TranscriptProtocol {
     fn domain_sep(&mut self, label: &'static [u8]);
 
     /// Append a prover `scalar` with the given `label`.
-    fn append_scalar(&mut self, label: &'static [u8], scalar: &ScalarField);
+    fn append_scalar(&mut self, label: &'static [u8], scalar: &ScalarField) -> Result<(), Error>;
 
     /// Append a prover `point` with the given `label`.
     fn append_point(&mut self, label: &'static [u8], point: &G1Point) -> Result<(), Error>;
@@ -32,15 +32,20 @@ pub trait TranscriptProtocol {
 }
 
 impl TranscriptProtocol for Transcript {
-    fn append_scalar(&mut self, label: &'static [u8], scalar: &ScalarField) {
+    fn append_scalar(&mut self, label: &'static [u8], scalar: &ScalarField) -> Result<(), Error> {
         let mut bytes = Vec::new();
-        scalar.serialize(&mut bytes).unwrap();
-        self.append_message(label, &bytes[..]);
+        let write_result = scalar.serialize(&mut bytes);
+        if write_result.is_ok() {
+            self.append_message(label, &bytes[..]);
+            return Ok(());
+        } else {
+            return Err(throw(TranscriptError::PointSerializationError));
+        }
     }
 
     fn append_point(&mut self, label: &'static [u8], point: &G1Point) -> Result<(), Error> {
         let mut bytes = Vec::new();
-        let write_result = point.write(&mut bytes);
+        let write_result = point.serialize(&mut bytes);
         if write_result.is_ok() {
             self.append_message(label, &bytes[..]);
             return Ok(());
