@@ -5,7 +5,8 @@ mod range_proof_tests {
     use core::panic;
     use merlin::Transcript;
     use rand::Rng;
-    use std::{io::Error, mem};
+    use serial_test::serial;
+    use std::io::Error;
     use zeromt::{
         ExecTimeBenchmark, InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof,
         RangeProver, RangeVerifier, Utils,
@@ -25,6 +26,7 @@ mod range_proof_tests {
     }
 
     #[test]
+    #[serial]
     fn verify_range_proof_test() {
         let mut bench: ExecTimeBenchmark = ExecTimeBenchmark::new(
             "./benchmark/range_proof.csv".to_string(),
@@ -64,7 +66,7 @@ mod range_proof_tests {
                 proof = Some(res_proof);
                 inner_arguments = Some(res_inner_arguments);
 
-                [proof.serialized_size().to_string()].to_vec()
+                [proof.as_ref().unwrap().serialized_size().to_string()].to_vec()
             });
 
             bench.bench_function(false, "".to_string(), &mut || {
@@ -87,6 +89,7 @@ mod range_proof_tests {
     }
 
     #[test]
+    #[serial]
     fn verify_range_proof_with_inner_test() {
         let mut bench: ExecTimeBenchmark = ExecTimeBenchmark::new(
             "./benchmark/range_inner_proof.csv".to_string(),
@@ -131,7 +134,7 @@ mod range_proof_tests {
                 range_proof = Some(res_proof);
                 inner_arguments = Some(res_inner_arguments);
 
-                [range_proof.serialized_size().to_string()].to_vec()
+                [range_proof.as_ref().unwrap().serialized_size().to_string()].to_vec()
             });
 
             bench.bench_function(false, "".to_string(), &mut || {
@@ -166,7 +169,7 @@ mod range_proof_tests {
                     .generate_proof(),
                 );
 
-                [inner_proof.serialized_size().to_string()].to_vec()
+                [inner_proof.as_ref().unwrap().serialized_size().to_string()].to_vec()
             });
 
             bench.bench_function(false, "".to_string(), &mut || {
