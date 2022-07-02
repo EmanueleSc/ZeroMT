@@ -75,7 +75,7 @@ impl<'a> InnerVerifier<'a> {
     fn get_s_vector(&mut self, x_vec: &mut Vec<ScalarField>, n: usize) -> Vec<ScalarField> {
         (0..n)
             .map(|i: usize| {
-                (0..n.log2())
+                (0..x_vec.len())
                     .map(|j| {
                         if self.bit_function(i, j as usize) {
                             x_vec[j as usize]

@@ -1,5 +1,3 @@
-#![feature(int_log)]
-
 mod benchmark;
 mod errors;
 mod inner;
