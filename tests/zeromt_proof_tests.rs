@@ -5,10 +5,10 @@ mod zeromt_proof_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use zeromt::{
-        InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof, RangeProver,
-        RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof, SigmaRProver,
-        SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof, SigmaYProver,
-        SigmaYVerifier, Utils,
+        ElGamal, InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof,
+        RangeProver, RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof,
+        SigmaRProver, SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof,
+        SigmaYProver, SigmaYVerifier, Utils,
     };
     #[test]
     fn zeromt_proof_test() {
@@ -30,26 +30,26 @@ mod zeromt_proof_tests {
             Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
 
         // Public keys
-        let sender_pub_key: G1Point = Utils::elgamal_calculate_pub_key(&sender_priv_key, &g);
+        let sender_pub_key: G1Point = ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
         let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
             .iter()
-            .map(|key: &ScalarField| Utils::elgamal_calculate_pub_key(key, &g))
+            .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
             .collect();
 
         let (c_l, c_r): (G1Point, G1Point) =
-            Utils::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
+            ElGamal::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
 
-        let d: G1Point = Utils::elgamal_d(&g, &r);
+        let d: G1Point = ElGamal::elgamal_d(&g, &r);
 
         let c_vec: Vec<G1Point> = amounts
             .iter()
-            .map(|a: &usize| Utils::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
+            .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
             .collect();
 
         let c_bar_vec: Vec<G1Point> = amounts
             .iter()
             .zip(recipients_pub_keys.iter())
-            .map(|(a, k)| Utils::elgamal_encrypt(*a, k, &g, &r).0)
+            .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
             .collect();
 
         // Proofs generation

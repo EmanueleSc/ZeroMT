@@ -226,26 +226,16 @@ impl Utils {
         return bits;
     }
 
-    pub fn elgamal_encrypt(
-        amount: usize,
-        pub_key: &G1Point,
-        g: &G1Point,
-        r: &ScalarField,
-    ) -> (G1Point, G1Point) {
-        let to_encrypt: ScalarField = ScalarField::from(amount as i128);
-        let c: G1Point =
-            g.mul(to_encrypt.into_repr()).into_affine() + pub_key.mul(r.into_repr()).into_affine();
+    pub fn get_mock_balances<R: Rng>(m: usize, rng: &mut R) -> (usize, Vec<usize>, usize) {
+        let total_balance: usize = usize::MAX;
+        let mut amounts: Vec<usize> = [].to_vec();
+        let mut balance_remaining: usize = total_balance;
+        for _ in 1..m {
+            let to_add = rng.gen_range(1..100);
+            amounts.push(to_add);
+            balance_remaining = total_balance - amounts.iter().sum::<usize>();
+        }
 
-        let d: G1Point = g.mul(r.into_repr()).into_affine();
-
-        (c, d)
-    }
-
-    pub fn elgamal_d(g: &G1Point, r: &ScalarField) -> G1Point {
-        g.mul(r.into_repr()).into_affine()
-    }
-
-    pub fn elgamal_calculate_pub_key(priv_key: &ScalarField, g: &G1Point) -> G1Point {
-        g.mul(priv_key.into_repr()).into_affine()
+        (total_balance, amounts, balance_remaining)
     }
 }

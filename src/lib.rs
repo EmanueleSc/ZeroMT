@@ -1,4 +1,5 @@
 mod benchmark;
+mod elgamal;
 mod errors;
 mod inner;
 mod range;
@@ -40,5 +41,6 @@ pub use crate::sigma_ab::sigma_ab_proof::SigmaABProof;
 pub use crate::sigma_ab::sigma_ab_prover::SigmaABProver;
 pub use crate::sigma_ab::sigma_ab_verifier::SigmaABVerifier;
 
+pub use crate::elgamal::ElGamal;
 pub use crate::transcript::TranscriptProtocol;
 pub use crate::utils::Utils;
