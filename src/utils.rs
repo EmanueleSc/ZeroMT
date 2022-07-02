@@ -227,7 +227,7 @@ impl Utils {
     }
 
     pub fn get_mock_balances<R: Rng>(m: usize, rng: &mut R) -> (usize, Vec<usize>, usize) {
-        let total_balance: usize = usize::MAX;
+        let total_balance: usize = usize::MAX / 2;
         let mut amounts: Vec<usize> = [].to_vec();
         let mut balance_remaining: usize = total_balance;
         for _ in 1..m {
