@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod sigma_sk_tests {
+mod sigma_r_tests {
     use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};

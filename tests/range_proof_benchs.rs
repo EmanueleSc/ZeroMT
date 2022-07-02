@@ -4,7 +4,7 @@ mod range_proof_benchs {
     use ark_serialize::CanonicalSerialize;
     use core::panic;
     use merlin::Transcript;
-    use rand::Rng;
+
     use serial_test::serial;
     use std::io::Error;
     use zeromt::{
@@ -14,7 +14,7 @@ mod range_proof_benchs {
 
     #[test]
     #[serial]
-    fn verify_range_proof_test() {
+    fn verify_range_proof_bench() {
         let mut bench: ExecTimeBenchmark = ExecTimeBenchmark::new(
             "./benchmark/range_proof.csv".to_string(),
             "m size".to_string(),
@@ -78,7 +78,7 @@ mod range_proof_benchs {
 
     #[test]
     #[serial]
-    fn verify_range_proof_with_inner_test() {
+    fn verify_range_proof_with_inner_bench() {
         let mut bench: ExecTimeBenchmark = ExecTimeBenchmark::new(
             "./benchmark/range_inner_proof.csv".to_string(),
             "m size".to_string(),
