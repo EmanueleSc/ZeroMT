@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod sigma_ab_benchs {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-    use ark_ec::{AffineCurve, ProjectiveCurve};
-    use ark_ff::{Field, One, PrimeField, Zero};
+
     use ark_serialize::CanonicalSerialize;
 
     use core::panic;
@@ -40,15 +39,9 @@ mod sigma_ab_benchs {
 
             // Random private keys
             let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
-            let recipients_priv_keys: Vec<ScalarField> =
-                Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
 
             // Public keys
             let sender_pub_key: G1Point = ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
-            let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
-                .iter()
-                .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
-                .collect();
 
             let (c_l, c_r): (G1Point, G1Point) =
                 ElGamal::elgamal_encrypt(total_balance, &sender_pub_key, &g, &r);
@@ -58,12 +51,6 @@ mod sigma_ab_benchs {
             let c_vec: Vec<G1Point> = amounts
                 .iter()
                 .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
-                .collect();
-
-            let c_bar_vec: Vec<G1Point> = amounts
-                .iter()
-                .zip(recipients_pub_keys.iter())
-                .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
                 .collect();
 
             let mut proof: Option<SigmaABProof> = None;

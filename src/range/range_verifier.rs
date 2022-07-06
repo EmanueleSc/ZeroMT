@@ -2,8 +2,8 @@ use crate::errors::proof_error::throw;
 use crate::ProofError;
 use crate::{transcript::TranscriptProtocol, Utils};
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, One, PrimeField};
+
+use ark_ff::Field;
 use merlin::Transcript;
 use std::io::Error;
 
@@ -37,25 +37,25 @@ impl<'a> RangeVerifier<'a> {
         let n: usize = Utils::get_n();
         let m: usize = self.amounts + 1;
 
-        self.transcript.append_point(b"A", proof.get_a());
-        self.transcript.append_point(b"S", proof.get_s());
+        let _result = self.transcript.append_point(b"A", proof.get_a());
+        let _result = self.transcript.append_point(b"S", proof.get_s());
 
         let y: ScalarField = self.transcript.challenge_scalar(b"y");
         let z: ScalarField = self.transcript.challenge_scalar(b"z");
 
-        self.transcript.append_point(b"T1", proof.get_t_1());
-        self.transcript.append_point(b"T2", proof.get_t_2());
+        let _result = self.transcript.append_point(b"T1", proof.get_t_1());
+        let _result = self.transcript.append_point(b"T2", proof.get_t_2());
 
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
-        self.transcript.append_scalar(b"t_hat", proof.get_t_hat());
-        self.transcript.append_scalar(b"mu", proof.get_mu());
-        self.transcript.append_point(b"A_t", proof.get_a_t());
+        let _result = self.transcript.append_scalar(b"t_hat", proof.get_t_hat());
+        let _result = self.transcript.append_scalar(b"mu", proof.get_mu());
+        let _result = self.transcript.append_point(b"A_t", proof.get_a_t());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
-        self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
-        self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
+        let _result = self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
+        let _result = self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
 
         let delta_left: ScalarField = (z - (z * z))
             * Utils::generate_scalar_exp_vector(m * n, &y)

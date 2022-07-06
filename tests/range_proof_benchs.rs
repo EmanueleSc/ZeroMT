@@ -37,7 +37,8 @@ mod range_proof_benchs {
             let g: G1Point = Utils::get_curve_generator();
             let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 
-            let (total_balance, amounts, balance_remaining) = Utils::get_mock_balances(m, &mut rng);
+            let (_total_balance, amounts, balance_remaining) =
+                Utils::get_mock_balances(m, &mut rng);
 
             let (mut proof, mut inner_arguments): (
                 Option<RangeProof>,
@@ -109,7 +110,8 @@ mod range_proof_benchs {
             let g: G1Point = Utils::get_curve_generator();
             let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 
-            let (total_balance, amounts, balance_remaining) = Utils::get_mock_balances(m, &mut rng);
+            let (_total_balance, amounts, balance_remaining) =
+                Utils::get_mock_balances(m, &mut rng);
 
             let (mut range_proof, mut inner_arguments): (
                 Option<RangeProof>,

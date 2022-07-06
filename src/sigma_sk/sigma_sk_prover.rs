@@ -24,11 +24,11 @@ impl<'a> SigmaSKProver<'a> {
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> SigmaSKProof {
         let k_sk: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let a_y: G1Point = self.g.mul(k_sk.into_repr()).into_affine();
-        self.transcript.append_point(b"A_y", &a_y);
+        let _result = self.transcript.append_point(b"A_y", &a_y);
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
         let s_sk: ScalarField = (*self.sk * c) + k_sk;
-        self.transcript.append_scalar(b"s_sk", &s_sk);
+        let _result = self.transcript.append_scalar(b"s_sk", &s_sk);
 
         SigmaSKProof::new(a_y, s_sk)
     }

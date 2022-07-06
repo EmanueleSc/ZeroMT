@@ -1,15 +1,7 @@
-use ark_bn254::g1::{G1_GENERATOR_X, G1_GENERATOR_Y};
-use ark_bn254::{Fr as ScalarField, G1Affine as G1Point, G1Projective};
-use ark_crypto_primitives::commitment::pedersen::Window;
-use ark_crypto_primitives::crh::pedersen::CRH;
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, One, PrimeField, Zero};
-use ark_std::UniformRand;
-use rand::Rng;
-use std::io::Error;
+use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 
-use crate::errors::utils_error::throw;
-use crate::UtilsError;
+use ark_ec::{AffineCurve, ProjectiveCurve};
+use ark_ff::PrimeField;
 
 pub struct ElGamal;
 

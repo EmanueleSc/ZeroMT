@@ -3,9 +3,7 @@ mod sigma_y_tests {
     use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-    use ark_ec::{AffineCurve, ProjectiveCurve};
-    use ark_ff::{Field, One, PrimeField, Zero};
-    use ark_std::rand::Rng;
+
     use merlin::Transcript;
     use zeromt::{ElGamal, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils};
 
@@ -20,7 +18,7 @@ mod sigma_y_tests {
 
         let balance: usize = 100;
         let amounts: Vec<usize> = [1, 2, 3, 4, 5, 5, 4, 2, 2, 4, 5, 3].to_vec();
-        let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
+        let _balance_remaining: usize = balance - amounts.iter().sum::<usize>();
 
         // Random private keys
         let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
@@ -33,11 +31,6 @@ mod sigma_y_tests {
             .iter()
             .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
             .collect();
-
-        let (c_l, c_r): (G1Point, G1Point) =
-            ElGamal::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
-
-        let d: G1Point = ElGamal::elgamal_d(&g, &r);
 
         let c_vec: Vec<G1Point> = amounts
             .iter()

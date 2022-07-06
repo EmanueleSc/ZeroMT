@@ -3,7 +3,7 @@ use crate::transcript::TranscriptProtocol;
 use crate::utils::Utils;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, PrimeField, Zero};
+use ark_ff::{Field, PrimeField};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
@@ -60,7 +60,7 @@ impl<'a> SigmaABProver<'a> {
         let a_ab: G1Point = (c_r_d_z + sum_d_z).mul(k_sk.into_repr()).into_affine()
             + self.g.mul(k_ab.into_repr()).into_affine();
 
-        self.transcript.append_point(b"A_ab", &a_ab);
+        let _result = self.transcript.append_point(b"A_ab", &a_ab);
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
@@ -68,8 +68,8 @@ impl<'a> SigmaABProver<'a> {
 
         let s_sk: ScalarField = (*self.sk * c) + k_sk;
 
-        self.transcript.append_scalar(b"s_ab", &s_ab);
-        self.transcript.append_scalar(b"s_sk", &s_sk);
+        let _result = self.transcript.append_scalar(b"s_ab", &s_ab);
+        let _result = self.transcript.append_scalar(b"s_sk", &s_sk);
 
         SigmaABProof::new(a_ab, s_sk, s_ab)
     }

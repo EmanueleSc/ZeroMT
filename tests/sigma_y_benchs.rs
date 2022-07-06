@@ -3,10 +3,9 @@ mod sigma_y_benchs {
     use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-    use ark_ec::{AffineCurve, ProjectiveCurve};
-    use ark_ff::{Field, One, PrimeField, Zero};
+
     use ark_serialize::CanonicalSerialize;
-    use ark_std::rand::Rng;
+
     use merlin::Transcript;
     use serial_test::serial;
     use std::io::Error;
@@ -37,7 +36,8 @@ mod sigma_y_benchs {
             let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
             let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-            let (total_balance, amounts, balance_remaining) = Utils::get_mock_balances(m, &mut rng);
+            let (_total_balance, amounts, _balance_remaining) =
+                Utils::get_mock_balances(m, &mut rng);
 
             // Random private keys
             let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
@@ -50,11 +50,6 @@ mod sigma_y_benchs {
                 .iter()
                 .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
                 .collect();
-
-            let (c_l, c_r): (G1Point, G1Point) =
-                ElGamal::elgamal_encrypt(total_balance, &sender_pub_key, &g, &r);
-
-            let d: G1Point = ElGamal::elgamal_d(&g, &r);
 
             let c_vec: Vec<G1Point> = amounts
                 .iter()

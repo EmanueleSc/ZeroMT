@@ -44,12 +44,12 @@ impl<'a> SigmaABVerifier<'a> {
     pub fn verify_proof(&mut self, proof: &SigmaABProof) -> Result<(), Error> {
         let z: ScalarField = self.transcript.challenge_scalar(b"z");
 
-        self.transcript.append_point(b"A_ab", proof.get_a_ab());
+        let _result = self.transcript.append_point(b"A_ab", proof.get_a_ab());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
-        self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
-        self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
+        let _result = self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
+        let _result = self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
 
         let left_eq_sum_d_z: G1Point = (1..=self.a)
             .map(|i| self.d.mul(z.pow([2 + (i as u64)])).into_affine())

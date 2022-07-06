@@ -21,10 +21,10 @@ impl<'a> SigmaRVerifier<'a> {
     }
 
     pub fn verify_proof(&mut self, proof: &SigmaRProof) -> Result<(), Error> {
-        self.transcript.append_point(b"A_D", proof.get_a_d());
+        let _result = self.transcript.append_point(b"A_D", proof.get_a_d());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
-        self.transcript.append_scalar(b"s_r", proof.get_s_r());
+        let _result = self.transcript.append_scalar(b"s_r", proof.get_s_r());
 
         let left_eq: G1Point = self.g.mul(proof.get_s_r().into_repr()).into_affine();
         let right_eq: G1Point = *proof.get_a_d() + (self.d.mul(c.into_repr()).into_affine());

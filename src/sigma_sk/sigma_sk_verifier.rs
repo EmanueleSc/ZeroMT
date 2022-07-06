@@ -22,10 +22,10 @@ impl<'a> SigmaSKVerifier<'a> {
     }
 
     pub fn verify_proof(&mut self, proof: &SigmaSKProof) -> Result<(), Error> {
-        self.transcript.append_point(b"A_y", proof.get_a_y());
+        let _result = self.transcript.append_point(b"A_y", proof.get_a_y());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
-        self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
+        let _result = self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
 
         let left_eq: G1Point = self.g.mul(proof.get_s_sk().into_repr()).into_affine();
         let right_eq: G1Point = *proof.get_a_y() + (self.y.mul(c.into_repr()).into_affine());

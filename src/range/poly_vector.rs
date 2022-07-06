@@ -1,4 +1,4 @@
-use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
+use ark_bn254::Fr as ScalarField;
 
 use crate::Utils;
 

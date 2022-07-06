@@ -1,15 +1,12 @@
 #[cfg(test)]
 mod range_proof_tests {
     use ark_bn254::G1Affine as G1Point;
-    use ark_serialize::CanonicalSerialize;
     use core::panic;
     use merlin::Transcript;
-    use rand::Rng;
-    use serial_test::serial;
-    use std::io::Error;
+
     use zeromt::{
-        ExecTimeBenchmark, InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof,
-        RangeProver, RangeVerifier, Utils,
+        InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof, RangeProver,
+        RangeVerifier, Utils,
     };
 
     #[test]
@@ -21,9 +18,9 @@ mod range_proof_tests {
         let g: G1Point = Utils::get_curve_generator();
         let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 
-        let (total_balance, amounts, balance_remaining) = Utils::get_mock_balances(4, &mut rng);
+        let (_total_balance, amounts, balance_remaining) = Utils::get_mock_balances(4, &mut rng);
 
-        let (proof, inner_arguments): (RangeProof, InnerProofArguments) =
+        let (proof, _inner_arguments): (RangeProof, InnerProofArguments) =
             RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
                 .generate_proof(&mut rng);
 
@@ -46,7 +43,7 @@ mod range_proof_tests {
         let g: G1Point = Utils::get_curve_generator();
         let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 
-        let (total_balance, amounts, balance_remaining) = Utils::get_mock_balances(4, &mut rng);
+        let (_total_balance, amounts, balance_remaining) = Utils::get_mock_balances(4, &mut rng);
 
         let (range_proof, inner_arguments): (RangeProof, InnerProofArguments) =
             RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)

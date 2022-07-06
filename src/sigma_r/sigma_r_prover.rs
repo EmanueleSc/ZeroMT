@@ -23,11 +23,11 @@ impl<'a> SigmaRProver<'a> {
     pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> SigmaRProof {
         let k_r: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let a_d: G1Point = self.g.mul(k_r.into_repr()).into_affine();
-        self.transcript.append_point(b"A_D", &a_d);
+        let _result = self.transcript.append_point(b"A_D", &a_d);
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
         let s_r: ScalarField = (*self.r * c) + k_r;
-        self.transcript.append_scalar(b"s_r", &s_r);
+        let _result = self.transcript.append_scalar(b"s_r", &s_r);
 
         SigmaRProof::new(a_d, s_r)
     }

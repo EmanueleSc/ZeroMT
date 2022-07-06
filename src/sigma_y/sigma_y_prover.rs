@@ -41,11 +41,11 @@ impl<'a> SigmaYProver<'a> {
             .mul(k_r.into_repr())
             .into_affine();
 
-        self.transcript.append_point(b"A_y_bar", &a_y_bar);
+        let _result = self.transcript.append_point(b"A_y_bar", &a_y_bar);
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
         let s_r: ScalarField = (*self.r * c) + k_r;
-        self.transcript.append_scalar(b"s_r", &s_r);
+        let _result = self.transcript.append_scalar(b"s_r", &s_r);
 
         SigmaYProof::new(a_y_bar, s_r)
     }

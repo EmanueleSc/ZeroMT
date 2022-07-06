@@ -3,7 +3,7 @@ use crate::ProofError;
 use crate::{transcript::TranscriptProtocol, Utils};
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, One, PrimeField};
+use ark_ff::{Field, PrimeField};
 use merlin::Transcript;
 use std::io::Error;
 
@@ -42,7 +42,6 @@ impl<'a> InnerVerifier<'a> {
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
-        let mut x_vec: Vec<ScalarField> = [].to_vec();
 
         self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof)
     }
@@ -103,8 +102,8 @@ impl<'a> InnerVerifier<'a> {
             let a: ScalarField = *proof.get_a();
             let b: ScalarField = *proof.get_b();
 
-            self.transcript.append_scalar(b"a", &a);
-            self.transcript.append_scalar(b"b", &b);
+            let _result = self.transcript.append_scalar(b"a", &a);
+            let _result = self.transcript.append_scalar(b"b", &b);
 
             let c: ScalarField = a * b;
 
@@ -131,8 +130,8 @@ impl<'a> InnerVerifier<'a> {
 
             let l: G1Point = proof.get_l_vec()[0];
             let r: G1Point = proof.get_r_vec()[0];
-            self.transcript.append_point(b"l", &l);
-            self.transcript.append_point(b"r", &r);
+            let _result = self.transcript.append_point(b"l", &l);
+            let _result = self.transcript.append_point(b"r", &r);
             let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
             let mut x_vec_first: Vec<ScalarField> = [x].to_vec();
@@ -175,8 +174,8 @@ impl<'a> InnerVerifier<'a> {
             let a: ScalarField = *proof.get_a();
             let b: ScalarField = *proof.get_b();
 
-            self.transcript.append_scalar(b"a", &a);
-            self.transcript.append_scalar(b"b", &b);
+            let _result = self.transcript.append_scalar(b"a", &a);
+            let _result = self.transcript.append_scalar(b"b", &b);
 
             let c: ScalarField = a * b;
 
@@ -202,8 +201,8 @@ impl<'a> InnerVerifier<'a> {
 
             let l: G1Point = proof.get_l_vec()[0];
             let r: G1Point = proof.get_r_vec()[0];
-            self.transcript.append_point(b"l", &l);
-            self.transcript.append_point(b"r", &r);
+            let _result = self.transcript.append_point(b"l", &l);
+            let _result = self.transcript.append_point(b"r", &r);
             let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
             let g_first_left: Vec<G1Point> =

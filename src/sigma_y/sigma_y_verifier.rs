@@ -34,11 +34,12 @@ impl<'a> SigmaYVerifier<'a> {
     }
 
     pub fn verify_proof(&mut self, proof: &SigmaYProof) -> Result<(), Error> {
-        self.transcript
+        let _result = self
+            .transcript
             .append_point(b"A_y_bar", proof.get_a_y_bar());
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
-        self.transcript.append_scalar(b"s_r", proof.get_s_r());
+        let _result = self.transcript.append_scalar(b"s_r", proof.get_s_r());
 
         let left_eq: G1Point = self
             .y_bar

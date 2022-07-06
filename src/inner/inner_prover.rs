@@ -2,8 +2,8 @@ use crate::transcript::TranscriptProtocol;
 use crate::utils::Utils;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, One, PrimeField, Zero};
-use ark_std::rand::Rng;
+use ark_ff::{Field, PrimeField};
+
 use merlin::Transcript;
 
 use super::inner_proof::InnerProof;
@@ -66,8 +66,8 @@ impl<'a> InnerProver<'a> {
         if n == 1 {
             let a: ScalarField = a_vec[0];
             let b: ScalarField = b_vec[0];
-            self.transcript.append_scalar(b"a", &a);
-            self.transcript.append_scalar(b"b", &b);
+            let _result = self.transcript.append_scalar(b"a", &a);
+            let _result = self.transcript.append_scalar(b"b", &b);
             InnerProof::new(a, b, [].to_vec(), [].to_vec())
         } else {
             let n_first = n / 2;
@@ -96,8 +96,8 @@ impl<'a> InnerProver<'a> {
             let mut l_vec: Vec<G1Point> = [l].to_vec();
             let mut r_vec: Vec<G1Point> = [r].to_vec();
 
-            self.transcript.append_point(b"l", &l);
-            self.transcript.append_point(b"r", &r);
+            let _result = self.transcript.append_point(b"l", &l);
+            let _result = self.transcript.append_point(b"r", &r);
             let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
             let g_first_left: Vec<G1Point> =

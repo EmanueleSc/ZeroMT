@@ -1,7 +1,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ff::{PrimeField, ToBytes};
+use ark_ff::PrimeField;
 use ark_serialize::CanonicalSerialize;
 use ark_std::Zero;
 use merlin::Transcript;

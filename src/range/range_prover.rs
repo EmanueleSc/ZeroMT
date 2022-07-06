@@ -62,8 +62,8 @@ impl<'a> RangeProver<'a> {
         let s_commitment: G1Point =
             Utils::pedersen_vector_commitment(&rho, &self.h, &s_l, &g_vec, &s_r, &h_vec).unwrap();
 
-        self.transcript.append_point(b"A", &a_commitment);
-        self.transcript.append_point(b"S", &s_commitment);
+        let _result = self.transcript.append_point(b"A", &a_commitment);
+        let _result = self.transcript.append_point(b"S", &s_commitment);
 
         let y: ScalarField = self.transcript.challenge_scalar(b"y");
         let z: ScalarField = self.transcript.challenge_scalar(b"z");
@@ -82,8 +82,8 @@ impl<'a> RangeProver<'a> {
         let t_commitment_2: G1Point =
             Utils::pedersen_commitment(t.get_t_2(), self.g, &tau_2, self.h);
 
-        self.transcript.append_point(b"T1", &t_commitment_1);
-        self.transcript.append_point(b"T2", &t_commitment_2);
+        let _result = self.transcript.append_point(b"T1", &t_commitment_1);
+        let _result = self.transcript.append_point(b"T2", &t_commitment_2);
 
         let x: ScalarField = self.transcript.challenge_scalar(b"x");
 
@@ -102,17 +102,17 @@ impl<'a> RangeProver<'a> {
 
         let a_t_commitment: G1Point = Utils::pedersen_commitment(&(-k_ab), self.g, &k_tau, self.h);
 
-        self.transcript.append_scalar(b"t_hat", &t_hat);
-        self.transcript.append_scalar(b"mu", &mu);
-        self.transcript.append_point(b"A_t", &a_t_commitment);
+        let _result = self.transcript.append_scalar(b"t_hat", &t_hat);
+        let _result = self.transcript.append_scalar(b"mu", &mu);
+        let _result = self.transcript.append_point(b"A_t", &a_t_commitment);
 
         let c: ScalarField = self.transcript.challenge_scalar(b"c");
 
         let s_ab: ScalarField = self.get_s_ab(&k_ab, &c, self.b, &z, self.a);
         let s_tau: ScalarField = (tau_x * c) + k_tau;
 
-        self.transcript.append_scalar(b"s_ab", &s_ab);
-        self.transcript.append_scalar(b"s_tau", &s_tau);
+        let _result = self.transcript.append_scalar(b"s_ab", &s_ab);
+        let _result = self.transcript.append_scalar(b"s_tau", &s_tau);
 
         let h_first_vec: Vec<G1Point> = (0..m * n)
             .map(|i: usize| {

@@ -1,6 +1,4 @@
-use ark_serialize::CanonicalSerialize;
 use csv::Writer;
-use std::error::Error;
 use std::fs::File;
 use std::time::{Duration, Instant};
 
@@ -14,8 +12,8 @@ impl ExecTimeBenchmark {
         let mut first_line: Vec<String> = [title].to_vec();
         first_line.append(&mut labels);
 
-        csv_writer.write_record(&first_line);
-        csv_writer.flush();
+        let _result = csv_writer.write_record(&first_line);
+        let _result = csv_writer.flush();
         ExecTimeBenchmark { csv_writer }
     }
 
