@@ -54,9 +54,9 @@ public class Costs {
         int eccMulCost = calculateEccMul(eccMul, optimized);
         int total = eccAddCost + eccMulCost;
         System.out.format("Inner Product Argument - Protocol 1 - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -77,12 +77,12 @@ public class Costs {
 
         int total = mulCost + divCost + expCost + eccAddCost + eccMulCost;
         System.out.format("Inner Product Argument - Protocol 2 (Normal) - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("MUL - Op: %d - Cost: %d \n", mul, mulCost);
-        System.out.format("DIV - Op: %d - Cost: %d \n", div, divCost);
-        System.out.format("EXP - Op: %d - Cost: %d \n", exp, expCost);
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("MUL - Op: %,d - Cost: %,d \n", mul, mulCost);
+        System.out.format("DIV - Op: %,d - Cost: %,d \n", div, divCost);
+        System.out.format("EXP - Op: %,d - Cost: %,d \n", exp, expCost);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -96,12 +96,12 @@ public class Costs {
         int eccMul = 3 + 2 * n + ceilDouble(2 * customLog(2, n));
         int total = calculateMul(mul) + calculateDiv(div) + calculateExp(exp, 2) + calculateEccAdd(eccAdd, optimized) + calculateEccMul(eccMul, optimized);
         System.out.format("Inner Product Argument - Protocol 2 (Multiexp) - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("MUL - Op: %d - Cost: %d \n", mul, calculateMul(mul));
-        System.out.format("DIV - Op: %d - Cost: %d \n", div, calculateDiv(div));
-        System.out.format("EXP - Op: %d - Cost: %d \n", exp, calculateExp(exp, 2));
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, calculateEccAdd(eccAdd, optimized));
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, calculateEccMul(eccMul, optimized));
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("MUL - Op: %,d - Cost: %,d \n", mul, calculateMul(mul));
+        System.out.format("DIV - Op: %,d - Cost: %,d \n", div, calculateDiv(div));
+        System.out.format("EXP - Op: %,d - Cost: %,d \n", exp, calculateExp(exp, 2));
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, calculateEccAdd(eccAdd, optimized));
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, calculateEccMul(eccMul, optimized));
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -152,13 +152,13 @@ public class Costs {
         int total = addCost + mulCost + subCost + (expYCost + expTwoCost + expZCost + expCost) + eccAddCost + eccMulCost;
 
         System.out.format("Aggregated Range Proof - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ADD - Op: %d - Cost: %d \n", add, addCost);
-        System.out.format("MUL - Op: %d - Cost: %d \n", mul, mulCost);
-        System.out.format("SUB - Op: %d - Cost: %d \n", sub, subCost);
-        System.out.format("EXP - Op: %d - Cost: %d \n", expY + expTwo + expZ + exp, expYCost + expTwoCost + expZCost + expCost);
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("ADD - Op: %,d - Cost: %,d \n", add, addCost);
+        System.out.format("MUL - Op: %,d - Cost: %,d \n", mul, mulCost);
+        System.out.format("SUB - Op: %,d - Cost: %,d \n", sub, subCost);
+        System.out.format("EXP - Op: %,d - Cost: %,d \n", expY + expTwo + expZ + exp, expYCost + expTwoCost + expZCost + expCost);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -208,12 +208,12 @@ public class Costs {
 
         int total = addCost + divCost + (expYCost + expYTwoCost + expTwoCost + expZCost) + eccAddCost + eccMulCost;
         System.out.format("Range-IPA Arguments - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ADD - Op: %d - Cost: %d \n", add, addCost);
-        System.out.format("DIV - Op: %d - Cost: %d \n", div, divCost);
-        System.out.format("EXP - Op: %d - Cost: %d \n", expY + expYTwo + expTwo + expZ, expYCost + expYTwoCost + expTwoCost + expZCost);
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("ADD - Op: %,d - Cost: %,d \n", add, addCost);
+        System.out.format("DIV - Op: %,d - Cost: %,d \n", div, divCost);
+        System.out.format("EXP - Op: %,d - Cost: %,d \n", expY + expYTwo + expTwo + expZ, expYCost + expYTwoCost + expTwoCost + expZCost);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -227,9 +227,9 @@ public class Costs {
 
         int total = eccAddCost + eccMulCost;
         System.out.format("Sigma SK - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -242,10 +242,10 @@ public class Costs {
         int eccMulCost = calculateEccMul(eccMul, optimized);
 
         int total = eccAddCost + eccMulCost;
-        System.out.format("Sigma SK - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("Sigma R - %s \n", optimized ? "EIP-1108" : "EIP-196");
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
@@ -287,27 +287,22 @@ public class Costs {
         int eccMulCost = calculateEccMul(eccMul, optimized);
 
         int total = eccAddCost + eccMulCost + (expCost + expZCost + expZTwoCost);
-        System.out.format("Sigma SK - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("EXP - Op: %d - Cost: %d \n", exp + expZ + expZTwo, expCost + expZCost + expZTwoCost);
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("Sigma AB - %s \n", optimized ? "EIP-1108" : "EIP-196");
+        System.out.format("EXP - Op: %,d - Cost: %,d \n", exp + expZ + expZTwo, expCost + expZCost + expZTwoCost);
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
 
     public static int sigmaY(boolean optimized, int n, int m) {
 
-        int eccAdd = 1 /* [ + c] */ +
-                1 /* [ - sumD] */ +
-                1 /* [ + sumZD] */ +
-                1 /* [ + c] */ +
-                1 /* [ - sumCi] */ +
-                1 /* [ + sumZCi] */ +
-                (m - 2) /* [sumD] */ +
-                (m - 2) /* [sumZD] */ +
-                (m - 2) /* [sumCi] */ +
-                (m - 2) /* [sumZCi] */;
+        int eccAdd = (m - 1) /* [ (y - yi))] */ +
+                (m - 2) /* [ sumSrYYi] */ +
+                (m - 1) /* [ (C - Ci)] */ +
+                (m - 2) /* [ * (sumCCi))] */ +
+                1 /* [ + c] */;
         int eccAddCost = calculateEccAdd(eccAdd, optimized);
 
         int eccMul = (m - 1) /* [ * (y - yi))] */ +
@@ -318,30 +313,57 @@ public class Costs {
         int eccMulCost = calculateEccMul(eccMul, optimized);
 
         int total = eccAddCost + eccMulCost;
-        System.out.format("Sigma SK - %s \n", optimized ? "EIP-1108" : "EIP-196");
-        System.out.format("ECC ADD - Op: %d - Cost: %d \n", eccAdd, eccAddCost);
-        System.out.format("ECC MUL - Op: %d - Cost: %d \n", eccMul, eccMulCost);
-        System.out.format("TOTAL: %d \n", total);
+        System.out.format("Sigma Y - %s \n", optimized ? "EIP-1108" : "EIP-196");
+        System.out.format("ECC ADD - Op: %,d - Cost: %,d \n", eccAdd, eccAddCost);
+        System.out.format("ECC MUL - Op: %,d - Cost: %,d \n", eccMul, eccMulCost);
+        System.out.format("TOTAL: %,d \n", total);
         System.out.println("--------------------------------------------------------------------------------------------");
         return total;
     }
-
 
 
     public static void main(String[] args) {
         int n = 64;
         int m = 4;
         boolean opt = true;
-        System.out.format("n: %d - m: %d \n", n, m);
+        System.out.format("n: %,d - m: %,d \n", n, m);
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 1108 Normal: %d \n", ipaProtOneCosts(opt) + ipaProtTwoCosts(opt, n * m) + range(opt, n, m) + rangeIpaArguments(opt, n, m));
+        System.out.format("TOTAL EIP 1108 Normal: %,d \n", ipaProtOneCosts(opt) +
+                ipaProtTwoCosts(opt, n * m) +
+                range(opt, n, m) +
+                rangeIpaArguments(opt, n, m) +
+                sigmaSk(opt, n, m) +
+                sigmaR(opt, n, m) +
+                sigmaAB(opt, n, m) +
+                sigmaY(opt, n, m));
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 1108 Multiexp: %d \n", ipaProtOneCosts(opt) + ipaProtTwoMultiexp(opt, n * m) + range(opt, n, m) + rangeIpaArguments(opt, n, m));
+        System.out.format("TOTAL EIP 1108 Multiexp: %,d \n", ipaProtOneCosts(opt) +
+                ipaProtTwoMultiexp(opt, n * m) +
+                range(opt, n, m) +
+                rangeIpaArguments(opt, n, m) +
+                sigmaSk(opt, n, m) +
+                sigmaR(opt, n, m) +
+                sigmaAB(opt, n, m) +
+                sigmaY(opt, n, m));
         System.out.println("############################################################################################");
         opt = false;
-        System.out.format("TOTAL EIP 196 Normal: %d \n", ipaProtOneCosts(opt) + ipaProtTwoCosts(opt, n * m) + range(opt, n, m) + rangeIpaArguments(opt, n, m));
+        System.out.format("TOTAL EIP 196 Normal: %,d \n", ipaProtOneCosts(opt) +
+                ipaProtTwoCosts(opt, n * m) +
+                range(opt, n, m) +
+                rangeIpaArguments(opt, n, m) +
+                sigmaSk(opt, n, m) +
+                sigmaR(opt, n, m) +
+                sigmaAB(opt, n, m) +
+                sigmaY(opt, n, m));
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 196 Multiexp: %d \n", ipaProtOneCosts(opt) + ipaProtTwoMultiexp(opt, n * m) + range(opt, n, m) + rangeIpaArguments(opt, n, m));
+        System.out.format("TOTAL EIP 196 Multiexp: %,d \n", ipaProtOneCosts(opt) +
+                ipaProtTwoMultiexp(opt, n * m) +
+                range(opt, n, m) +
+                rangeIpaArguments(opt, n, m) +
+                sigmaSk(opt, n, m) +
+                sigmaR(opt, n, m) +
+                sigmaAB(opt, n, m) +
+                sigmaY(opt, n, m));
         System.out.println("############################################################################################");
     }
 }
