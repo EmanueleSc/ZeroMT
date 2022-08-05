@@ -321,14 +321,25 @@ public class Costs {
         return total;
     }
 
+    public static void printCosts() {
+        System.out.format("Base Operations costs \n");
+        System.out.format("ADD (Scalar addition) - %,d \n", calculateAdd(1));
+        System.out.format("SUB (Scalar subtraction) - %,d \n", calculateSub(1));
+        System.out.format("MUL (Scalar multiplication) - %,d \n", calculateMul(1));
+        System.out.format("DIV (Scalar division) - %,d \n", calculateDiv(1));
+        System.out.format("EXP (Scalar exponentiation) - (exp == 0) ? 10 : (10 + 10 * (1 + log256(exp))) \n");
+        System.out.format("ECC ADD (Elliptic curve point addition) - EIP-196 %,d - EIP-1108 %,d \n", calculateEccAdd(1, false), calculateEccAdd(1, true));
+        System.out.format("ECC MUL (Elliptic curve point and scalar multiplication) - EIP-196 %,d - EIP-1108 %,d \n", calculateEccMul(1, false), calculateEccMul(1, true));
+    }
 
     public static void main(String[] args) {
         int n = 64;
         int m = 4;
         boolean opt = true;
         System.out.format("n: %,d - m: %,d \n", n, m);
+        printCosts();
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 1108 Normal: %,d \n", ipaProtOneCosts(opt) +
+        System.out.format("TOTAL EIP-1108 Normal: %,d \n", ipaProtOneCosts(opt) +
                 ipaProtTwoCosts(opt, n * m) +
                 range(opt, n, m) +
                 rangeIpaArguments(opt, n, m) +
@@ -337,7 +348,7 @@ public class Costs {
                 sigmaAB(opt, n, m) +
                 sigmaY(opt, n, m));
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 1108 Multiexp: %,d \n", ipaProtOneCosts(opt) +
+        System.out.format("TOTAL EIP-1108 Multiexp: %,d \n", ipaProtOneCosts(opt) +
                 ipaProtTwoMultiexp(opt, n * m) +
                 range(opt, n, m) +
                 rangeIpaArguments(opt, n, m) +
@@ -347,7 +358,7 @@ public class Costs {
                 sigmaY(opt, n, m));
         System.out.println("############################################################################################");
         opt = false;
-        System.out.format("TOTAL EIP 196 Normal: %,d \n", ipaProtOneCosts(opt) +
+        System.out.format("TOTAL EIP-196 Normal: %,d \n", ipaProtOneCosts(opt) +
                 ipaProtTwoCosts(opt, n * m) +
                 range(opt, n, m) +
                 rangeIpaArguments(opt, n, m) +
@@ -356,7 +367,7 @@ public class Costs {
                 sigmaAB(opt, n, m) +
                 sigmaY(opt, n, m));
         System.out.println("############################################################################################");
-        System.out.format("TOTAL EIP 196 Multiexp: %,d \n", ipaProtOneCosts(opt) +
+        System.out.format("TOTAL EIP-196 Multiexp: %,d \n", ipaProtOneCosts(opt) +
                 ipaProtTwoMultiexp(opt, n * m) +
                 range(opt, n, m) +
                 rangeIpaArguments(opt, n, m) +

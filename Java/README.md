@@ -5,6 +5,14 @@ Contains a brief implementation of a gas costs calculation for the ZeroMT proof 
 
 ```
 n: 64 - m: 4 
+Base Operations costs 
+ADD (Scalar addition) - 3 
+SUB (Scalar subtraction) - 3 
+MUL (Scalar multiplication) - 5 
+DIV (Scalar division) - 5 
+EXP (Scalar exponentiation) - (exp == 0) ? 10 : (10 + 10 * (1 + log256(exp))) 
+ECC ADD (Elliptic curve point addition) - EIP-196 500 - EIP-1108 150 
+ECC MUL (Elliptic curve point and scalar multiplication) - EIP-196 40.000 - EIP-1108 6.000 
 ############################################################################################
 Inner Product Argument - Protocol 1 - EIP-1108 
 ECC ADD - Op: 1 - Cost: 150 
@@ -57,7 +65,7 @@ ECC ADD - Op: 11 - Cost: 1.650
 ECC MUL - Op: 10 - Cost: 60.000 
 TOTAL: 61.650 
 --------------------------------------------------------------------------------------------
-TOTAL EIP 1108 Normal: 10.141.224 
+TOTAL EIP-1108 Normal: 10.141.224 
 ############################################################################################
 Inner Product Argument - Protocol 1 - EIP-1108 
 ECC ADD - Op: 1 - Cost: 150 
@@ -110,7 +118,7 @@ ECC ADD - Op: 11 - Cost: 1.650
 ECC MUL - Op: 10 - Cost: 60.000 
 TOTAL: 61.650 
 --------------------------------------------------------------------------------------------
-TOTAL EIP 1108 Multiexp: 7.103.384 
+TOTAL EIP-1108 Multiexp: 7.103.384 
 ############################################################################################
 Inner Product Argument - Protocol 1 - EIP-196 
 ECC ADD - Op: 1 - Cost: 500 
@@ -163,7 +171,7 @@ ECC ADD - Op: 11 - Cost: 5.500
 ECC MUL - Op: 10 - Cost: 400.000 
 TOTAL: 405.500 
 --------------------------------------------------------------------------------------------
-TOTAL EIP 196 Normal: 66.843.174 
+TOTAL EIP-196 Normal: 66.843.174 
 ############################################################################################
 Inner Product Argument - Protocol 1 - EIP-196 
 ECC ADD - Op: 1 - Cost: 500 
@@ -216,7 +224,8 @@ ECC ADD - Op: 11 - Cost: 5.500
 ECC MUL - Op: 10 - Cost: 400.000 
 TOTAL: 405.500 
 --------------------------------------------------------------------------------------------
-TOTAL EIP 196 Multiexp: 46.533.334 
+TOTAL EIP-196 Multiexp: 46.533.334 
 ############################################################################################
+
 ```
 
