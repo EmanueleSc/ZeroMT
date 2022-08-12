@@ -48,8 +48,6 @@ mod zeromt_proof_tests {
             .to_vec(),
         );
 
-        let empty_vector: Vec<G1Point> = [].to_vec();
-
         let n_increases: usize = 2;
         let m_increases: usize = 5;
 
@@ -284,7 +282,7 @@ mod zeromt_proof_tests {
                     + sigma_y_verifier_duration.as_millis();
 
                 total_proof_size += range_proof.uncompressed_size()
-                    + (inner_proof.uncompressed_size() - 2 * empty_vector.uncompressed_size())
+                    + (inner_proof.uncompressed_size())
                     + sigma_ab_proof.uncompressed_size()
                     + sigma_sk_proof.uncompressed_size()
                     + sigma_r_proof.uncompressed_size()
@@ -299,8 +297,7 @@ mod zeromt_proof_tests {
                         range_proof.uncompressed_size().to_string(),
                         inner_prover_duration.as_millis().to_string(),
                         inner_verifier_duration.as_millis().to_string(),
-                        (inner_proof.uncompressed_size() - 2 * empty_vector.uncompressed_size())
-                            .to_string(),
+                        (inner_proof.uncompressed_size()).to_string(),
                         sigma_ab_prover_duration.as_millis().to_string(),
                         sigma_ab_verifier_duration.as_millis().to_string(),
                         sigma_ab_proof.uncompressed_size().to_string(),
