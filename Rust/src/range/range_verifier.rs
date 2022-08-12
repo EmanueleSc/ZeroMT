@@ -15,6 +15,7 @@ pub struct RangeVerifier<'a> {
     /// public generator
     g: &'a G1Point,
     h: &'a G1Point,
+    n: usize,
 }
 
 impl<'a> RangeVerifier<'a> {
@@ -23,18 +24,22 @@ impl<'a> RangeVerifier<'a> {
         g: &'a G1Point,
         h: &'a G1Point,
         amounts: usize,
+        n: usize,
     ) -> Self {
         transcript.domain_sep(b"RangeProof");
         RangeVerifier {
             transcript,
+            amounts,
             g,
             h,
-            amounts,
+            n,
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &RangeProof) -> Result<(), Error> {
-        let n: usize = Utils::get_n();
+    pub fn verify_proof(
+        &mut self,
+        proof: &RangeProof,
+    ) -> (Result<(), Error>, ScalarField, ScalarField, ScalarField) {
         let m: usize = self.amounts + 1;
 
         let _result = self.transcript.append_point(b"A", proof.get_a());
@@ -58,14 +63,14 @@ impl<'a> RangeVerifier<'a> {
         let _result = self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
 
         let delta_left: ScalarField = (z - (z * z))
-            * Utils::generate_scalar_exp_vector(m * n, &y)
+            * Utils::generate_scalar_exp_vector(m * self.n, &y)
                 .iter()
                 .sum::<ScalarField>();
 
         let delta_right: ScalarField = (1..=m)
             .map(|j: usize| {
                 z.pow([2 + (j as u64)])
-                    * Utils::generate_scalar_exp_vector(n, &ScalarField::from(2))
+                    * Utils::generate_scalar_exp_vector(self.n, &ScalarField::from(2))
                         .iter()
                         .sum::<ScalarField>()
             })
@@ -89,9 +94,9 @@ impl<'a> RangeVerifier<'a> {
             + Utils::pedersen_commitment(&g_scal, proof.get_t_1(), &h_scal, proof.get_t_2());
 
         if left_eq == right_eq {
-            return Ok(());
+            return (Ok(()), x, y, z);
         } else {
-            return Err(throw(ProofError::ProofValidationError));
+            return (Err(throw(ProofError::ProofValidationError)), x, y, z);
         }
     }
 }

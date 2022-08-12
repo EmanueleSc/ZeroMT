@@ -1,148 +1,113 @@
 #[cfg(test)]
 mod zeromt_proof_tests {
-    use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
-    use zeromt::{
-        ElGamal, InnerProof, InnerProofArguments, InnerProver, InnerVerifier, RangeProof,
-        RangeProver, RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof,
-        SigmaRProver, SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof,
-        SigmaYProver, SigmaYVerifier, Utils,
-    };
+    use serial_test::serial;
+    use zeromt::{ElGamal, Utils, ZeroMTProof, ZeroMTProver, ZeroMTVerifier};
+
     #[test]
+    #[serial]
     fn zeromt_proof_test() {
-        let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
-        let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
+        let n_increases: usize = 2;
+        let m_increases: usize = 5;
 
         let mut rng = ark_std::rand::thread_rng();
-        let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-        let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-        let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-        let balance: usize = 400;
-        let amounts: Vec<usize> = [80, 20, 70, 10, 1, 1, 1].to_vec();
-        let balance_remaining: usize = balance - amounts.iter().sum::<usize>();
+        let mut n: usize = 16;
+        for _ in 0..=n_increases {
+            let mut m: usize = 2;
+            for _ in 0..=m_increases {
+                let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
+                let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 
-        // Random private keys
-        let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
-        let recipients_priv_keys: Vec<ScalarField> =
-            Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
+                let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-        // Public keys
-        let sender_pub_key: G1Point = ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
-        let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
-            .iter()
-            .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
-            .collect();
+                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 
-        let (c_l, c_r): (G1Point, G1Point) =
-            ElGamal::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
+                let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+                let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
 
-        let d: G1Point = ElGamal::elgamal_d(&g, &r);
+                let (balance, amounts, balance_remaining) =
+                    Utils::get_mock_balances(m, n, &mut rng);
 
-        let c_vec: Vec<G1Point> = amounts
-            .iter()
-            .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
-            .collect();
+                // Random private keys
+                let sender_priv_key: ScalarField =
+                    Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
+                let recipients_priv_keys: Vec<ScalarField> =
+                    Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
 
-        let c_bar_vec: Vec<G1Point> = amounts
-            .iter()
-            .zip(recipients_pub_keys.iter())
-            .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
-            .collect();
+                // Public keys
+                let sender_pub_key: G1Point =
+                    ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
+                let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
+                    .iter()
+                    .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
+                    .collect();
 
-        // Proofs generation
-        let (range_proof, inner_arguments): (RangeProof, InnerProofArguments) =
-            RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts)
+                let (c_l, c_r): (G1Point, G1Point) =
+                    ElGamal::elgamal_encrypt(balance, &sender_pub_key, &g, &r);
+
+                let d: G1Point = ElGamal::elgamal_d(&g, &r);
+
+                let c_vec: Vec<G1Point> = amounts
+                    .iter()
+                    .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
+                    .collect();
+
+                let c_bar_vec: Vec<G1Point> = amounts
+                    .iter()
+                    .zip(recipients_pub_keys.iter())
+                    .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
+                    .collect();
+
+                let proof: ZeroMTProof = ZeroMTProver::new(
+                    &mut prover_trans,
+                    &g,
+                    &h,
+                    balance_remaining,
+                    &amounts,
+                    &g_vec,
+                    &h_vec,
+                    &u,
+                    m,
+                    n,
+                    &d,
+                    &c_r,
+                    &sender_priv_key,
+                    &r,
+                    &sender_pub_key,
+                    &recipients_pub_keys,
+                )
                 .generate_proof(&mut rng);
 
-        let sigma_sk_proof: SigmaSKProof =
-            SigmaSKProver::new(&mut prover_trans, &g, &sender_priv_key).generate_proof(&mut rng);
+                let verification_result = ZeroMTVerifier::new(
+                    &mut verifier_trans,
+                    &g,
+                    &h,
+                    m,
+                    n,
+                    &amounts,
+                    &g_vec,
+                    &h_vec,
+                    &u,
+                    &d,
+                    &c_r,
+                    &c_l,
+                    &c_vec,
+                    &c_bar_vec,
+                    &sender_pub_key,
+                    &recipients_pub_keys,
+                )
+                .verify_proof(&proof);
 
-        let sigma_r_proof: SigmaRProof =
-            SigmaRProver::new(&mut prover_trans, &g, &r).generate_proof(&mut rng);
+                assert!(verification_result.is_ok(), "Verifier fails");
 
-        let sigma_ab_proof: SigmaABProof = SigmaABProver::new(
-            &mut prover_trans,
-            &g,
-            &d,
-            &c_r,
-            balance_remaining,
-            &amounts,
-            &sender_priv_key,
-        )
-        .generate_proof(&mut rng);
-
-        let sigma_y_proof: SigmaYProof =
-            SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys)
-                .generate_proof(&mut rng);
-
-        // Proofs verification
-        let range_proof_result = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len())
-            .verify_proof(&range_proof);
-
-        let sigma_sk_result = SigmaSKVerifier::new(&mut verifier_trans, &g, &sender_pub_key)
-            .verify_proof(&sigma_sk_proof);
-
-        let sigma_r_result =
-            SigmaRVerifier::new(&mut verifier_trans, &g, &d).verify_proof(&sigma_r_proof);
-
-        let sigma_ab_result = SigmaABVerifier::new(
-            &mut verifier_trans,
-            &g,
-            &d,
-            &c_r,
-            &c_l,
-            &c_vec,
-            amounts.len(),
-        )
-        .verify_proof(&sigma_ab_proof);
-
-        let sigma_y_result = SigmaYVerifier::new(
-            &mut verifier_trans,
-            &sender_pub_key,
-            &recipients_pub_keys,
-            &c_vec,
-            &c_bar_vec,
-        )
-        .verify_proof(&sigma_y_proof);
-
-        let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-
-        let inner_proof: InnerProof = InnerProver::new(
-            &mut prover_trans,
-            inner_arguments.get_g_vec(),
-            inner_arguments.get_h_first_vec(),
-            inner_arguments.get_phu(),
-            inner_arguments.get_t_hat(),
-            inner_arguments.get_l(),
-            inner_arguments.get_r(),
-            &u,
-        )
-        .generate_proof();
-
-        let inner_result = InnerVerifier::new(
-            &mut verifier_trans,
-            inner_arguments.get_g_vec(),
-            inner_arguments.get_h_first_vec(),
-            inner_arguments.get_phu(),
-            inner_arguments.get_t_hat(),
-            &u,
-        )
-        .verify_proof_multiscalar(&inner_proof);
-
-        let proof_check: bool = range_proof_result.is_ok()
-            && sigma_sk_result.is_ok()
-            && sigma_r_result.is_ok()
-            && sigma_ab_result.is_ok()
-            && sigma_y_result.is_ok()
-            && inner_result.is_ok();
-
-        if proof_check {
-            assert!(true);
-        } else {
-            panic!("Verifier fails");
+                m *= 2;
+            }
+            n *= 2;
         }
     }
 }

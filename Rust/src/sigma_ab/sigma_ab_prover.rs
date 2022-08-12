@@ -84,10 +84,10 @@ impl<'a> SigmaABProver<'a> {
     ) -> ScalarField {
         let n: usize = a.len();
         let sum_a_z: ScalarField = (1..=n)
-            .map(|i: usize| ScalarField::from(a[i - 1] as i64) * z.pow([2 + (i as u64)]))
+            .map(|i: usize| ScalarField::from(a[i - 1] as i128) * z.pow([2 + (i as u64)]))
             .sum();
 
-        let right: ScalarField = ((ScalarField::from(b as i64)) * z.pow([2])) + sum_a_z;
+        let right: ScalarField = ((ScalarField::from(b as i128)) * z.pow([2])) + sum_a_z;
 
         *k_ab + (*c * right)
     }

@@ -63,7 +63,7 @@ impl<'a> InnerVerifier<'a> {
     }
 
     fn bit_function(&mut self, i: usize, j: usize) -> bool {
-        let bits: Vec<u8> = Utils::number_to_be_bits_reversed(i);
+        let bits: Vec<u8> = Utils::number_to_be_bits_reversed(i, usize::BITS as usize);
 
         if bits[j] == 1 {
             true
@@ -71,6 +71,7 @@ impl<'a> InnerVerifier<'a> {
             false
         }
     }
+
     fn get_s_vector(&mut self, x_vec: &mut Vec<ScalarField>, n: usize) -> Vec<ScalarField> {
         (0..n)
             .map(|i: usize| {

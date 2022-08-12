@@ -209,33 +209,30 @@ impl Utils {
             + h_point.mul(h_scalar.into_repr()).into_affine()
     }
 
-    pub fn get_n() -> usize {
-        return usize::BITS as usize;
-    }
-
-    pub fn number_to_be_bits(number: usize) -> Vec<u8> {
-        let mut bits: Vec<u8> = Self::number_to_be_bits_reversed(number);
+    pub fn number_to_be_bits(number: usize, n: usize) -> Vec<u8> {
+        let mut bits: Vec<u8> = Self::number_to_be_bits_reversed(number, n);
         bits.reverse();
         return bits;
     }
 
-    pub fn number_to_be_bits_reversed(number: usize) -> Vec<u8> {
-        let bits: Vec<u8> = (0..Self::get_n())
-            .map(|i| (((number >> i) & 1) as u8))
-            .collect();
+    pub fn number_to_be_bits_reversed(number: usize, n: usize) -> Vec<u8> {
+        let bits: Vec<u8> = (0..n).map(|i| (((number >> i) & 1) as u8)).collect();
         return bits;
     }
 
-    pub fn get_mock_balances<R: Rng>(m: usize, rng: &mut R) -> (usize, Vec<usize>, usize) {
-        let total_balance: usize = usize::MAX / 2;
-        let mut amounts: Vec<usize> = [].to_vec();
-        let mut balance_remaining: usize = total_balance;
-        for _ in 1..m {
-            let to_add = rng.gen_range(1..100);
-            amounts.push(to_add);
-            balance_remaining = total_balance - amounts.iter().sum::<usize>();
-        }
+    pub fn get_mock_balances<R: Rng>(
+        m: usize,
+        n: usize,
+        rng: &mut R,
+    ) -> (usize, Vec<usize>, usize) {
+        let total_balance: usize = (i128::pow(2, n.try_into().unwrap()) - 1) as usize;
 
+        let mut amounts: Vec<usize> = [].to_vec();
+        for _ in 1..m {
+            let to_add: usize = rng.gen_range(0..total_balance / (m - 1));
+            amounts.push(to_add);
+        }
+        let balance_remaining: usize = total_balance - amounts.iter().sum::<usize>();
         (total_balance, amounts, balance_remaining)
     }
 }

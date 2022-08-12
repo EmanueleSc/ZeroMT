@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod sigma_y_tests {
-    use core::panic;
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 
@@ -13,55 +12,64 @@ mod sigma_y_tests {
         let mut verifier_trans: Transcript = Transcript::new(b"SigmaYTest");
 
         let mut rng = ark_std::rand::thread_rng();
-        let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-        let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-        let balance: usize = 100;
-        let amounts: Vec<usize> = [1, 2, 3, 4, 5, 5, 4, 2, 2, 4, 5, 3].to_vec();
-        let _balance_remaining: usize = balance - amounts.iter().sum::<usize>();
+        let n_increases: usize = 2;
+        let m_increases: usize = 5;
+        let mut n: usize = 16;
+        for _ in 0..=n_increases {
+            let mut m: usize = 2;
+            for _ in 0..=m_increases {
+                let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-        // Random private keys
-        let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
-        let recipients_priv_keys: Vec<ScalarField> =
-            Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
+                let (_balance_start, amounts, _balance_remaining) =
+                    Utils::get_mock_balances(m, n, &mut rng);
 
-        // Public keys
-        let sender_pub_key: G1Point = ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
-        let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
-            .iter()
-            .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
-            .collect();
+                // Random private keys
+                let sender_priv_key: ScalarField =
+                    Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
+                let recipients_priv_keys: Vec<ScalarField> =
+                    Utils::get_n_random_scalars_not_zero(amounts.len(), &mut rng);
 
-        let c_vec: Vec<G1Point> = amounts
-            .iter()
-            .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
-            .collect();
+                // Public keys
+                let sender_pub_key: G1Point =
+                    ElGamal::elgamal_calculate_pub_key(&sender_priv_key, &g);
+                let recipients_pub_keys: Vec<G1Point> = recipients_priv_keys
+                    .iter()
+                    .map(|key: &ScalarField| ElGamal::elgamal_calculate_pub_key(key, &g))
+                    .collect();
 
-        let c_bar_vec: Vec<G1Point> = amounts
-            .iter()
-            .zip(recipients_pub_keys.iter())
-            .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
-            .collect();
+                let c_vec: Vec<G1Point> = amounts
+                    .iter()
+                    .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
+                    .collect();
 
-        let mut prover: SigmaYProver =
-            SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
+                let c_bar_vec: Vec<G1Point> = amounts
+                    .iter()
+                    .zip(recipients_pub_keys.iter())
+                    .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
+                    .collect();
 
-        let proof: SigmaYProof = prover.generate_proof(&mut rng);
+                let mut prover: SigmaYProver =
+                    SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
 
-        let mut verifier: SigmaYVerifier = SigmaYVerifier::new(
-            &mut verifier_trans,
-            &sender_pub_key,
-            &recipients_pub_keys,
-            &c_vec,
-            &c_bar_vec,
-        );
+                let proof: SigmaYProof = prover.generate_proof(&mut rng);
 
-        let result = verifier.verify_proof(&proof);
+                let mut verifier: SigmaYVerifier = SigmaYVerifier::new(
+                    &mut verifier_trans,
+                    &sender_pub_key,
+                    &recipients_pub_keys,
+                    &c_vec,
+                    &c_bar_vec,
+                );
 
-        if result.is_ok() {
-            assert!(true);
-        } else {
-            panic!("Verifier fails");
+                let result = verifier.verify_proof(&proof);
+
+                assert!(result.is_ok(), "Verifier fails");
+
+                m *= 2;
+            }
+            n *= 2;
         }
     }
 }

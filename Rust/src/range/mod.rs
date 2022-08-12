@@ -1,4 +1,3 @@
-pub(crate) mod inner_proof_arguments;
 pub(crate) mod poly_coefficients;
 pub(crate) mod poly_vector;
 pub(crate) mod range_proof;

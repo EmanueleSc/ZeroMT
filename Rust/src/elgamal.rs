@@ -13,6 +13,7 @@ impl ElGamal {
         r: &ScalarField,
     ) -> (G1Point, G1Point) {
         let to_encrypt: ScalarField = ScalarField::from(amount as i128);
+
         let c: G1Point =
             g.mul(to_encrypt.into_repr()).into_affine() + pub_key.mul(r.into_repr()).into_affine();
 

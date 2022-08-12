@@ -14,7 +14,8 @@ mod utils_tests {
         ]
         .to_vec();
 
-        let resulting_number_bits: Vec<u8> = Utils::number_to_be_bits(test_number);
+        let resulting_number_bits: Vec<u8> =
+            Utils::number_to_be_bits(test_number, usize::BITS as usize);
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }
@@ -29,7 +30,8 @@ mod utils_tests {
         .to_vec();
 
         test_number_bits.reverse();
-        let resulting_number_bits: Vec<u8> = Utils::number_to_be_bits_reversed(test_number);
+        let resulting_number_bits: Vec<u8> =
+            Utils::number_to_be_bits_reversed(test_number, usize::BITS as usize);
 
         assert_eq!(test_number_bits, resulting_number_bits);
     }
