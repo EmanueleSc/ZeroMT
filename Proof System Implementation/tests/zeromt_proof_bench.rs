@@ -7,6 +7,7 @@ mod zeromt_proof_tests {
     use ark_ff::{Field, One, PrimeField};
     use ark_serialize::CanonicalSerialize;
     use merlin::Transcript;
+    use num_format::{Locale, ToFormattedString};
     use serial_test::serial;
     use zeromt::{
         CsvUtils, ElGamal, InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver,
@@ -292,27 +293,61 @@ mod zeromt_proof_tests {
                     [
                         n.to_string(),
                         m.to_string(),
-                        range_prover_duration.as_millis().to_string(),
-                        range_verifier_duration.as_millis().to_string(),
-                        range_proof.uncompressed_size().to_string(),
-                        inner_prover_duration.as_millis().to_string(),
-                        inner_verifier_duration.as_millis().to_string(),
-                        (inner_proof.uncompressed_size()).to_string(),
-                        sigma_ab_prover_duration.as_millis().to_string(),
-                        sigma_ab_verifier_duration.as_millis().to_string(),
-                        sigma_ab_proof.uncompressed_size().to_string(),
-                        sigma_r_prover_duration.as_millis().to_string(),
-                        sigma_r_verifier_duration.as_millis().to_string(),
-                        sigma_r_proof.uncompressed_size().to_string(),
-                        sigma_sk_prover_duration.as_millis().to_string(),
-                        sigma_sk_verifier_duration.as_millis().to_string(),
-                        sigma_sk_proof.uncompressed_size().to_string(),
-                        sigma_y_prover_duration.as_millis().to_string(),
-                        sigma_y_verifier_duration.as_millis().to_string(),
-                        sigma_y_proof.uncompressed_size().to_string(),
-                        total_prove_time.to_string(),
-                        total_verify_time.to_string(),
-                        total_proof_size.to_string(),
+                        range_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        range_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        range_proof
+                            .uncompressed_size()
+                            .to_formatted_string(&Locale::en),
+                        inner_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        inner_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        (inner_proof.uncompressed_size()).to_formatted_string(&Locale::en),
+                        sigma_ab_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_ab_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_ab_proof
+                            .uncompressed_size()
+                            .to_formatted_string(&Locale::en),
+                        sigma_r_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_r_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_r_proof
+                            .uncompressed_size()
+                            .to_formatted_string(&Locale::en),
+                        sigma_sk_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_sk_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_sk_proof
+                            .uncompressed_size()
+                            .to_formatted_string(&Locale::en),
+                        sigma_y_prover_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_y_verifier_duration
+                            .as_millis()
+                            .to_formatted_string(&Locale::en),
+                        sigma_y_proof
+                            .uncompressed_size()
+                            .to_formatted_string(&Locale::en),
+                        total_prove_time.to_formatted_string(&Locale::en),
+                        total_verify_time.to_formatted_string(&Locale::en),
+                        total_proof_size.to_formatted_string(&Locale::en),
                     ]
                     .to_vec(),
                 );
