@@ -9,9 +9,7 @@ use merlin::Transcript;
 
 pub struct SigmaSKProver<'a> {
     transcript: &'a mut Transcript,
-    /// public generator
     g: &'a G1Point,
-    /// witness: sender private key is a random scalar (!= 0)
     sk: &'a ScalarField,
 }
 

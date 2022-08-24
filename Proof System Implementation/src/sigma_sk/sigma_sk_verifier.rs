@@ -9,9 +9,7 @@ use std::io::Error;
 
 pub struct SigmaSKVerifier<'a> {
     transcript: &'a mut Transcript,
-    /// public generator
     g: &'a G1Point,
-    /// sender public key: y = g^{sk}
     y: &'a G1Point,
 }
 

@@ -12,7 +12,6 @@ use super::range_proof::RangeProof;
 pub struct RangeVerifier<'a> {
     transcript: &'a mut Transcript,
     amounts: usize,
-    /// public generator
     g: &'a G1Point,
     h: &'a G1Point,
     n: usize,
@@ -82,10 +81,6 @@ impl<'a> RangeVerifier<'a> {
         let h_exp: ScalarField = *proof.get_s_tau();
 
         let left_eq: G1Point = Utils::pedersen_commitment(&g_exp, self.g, &h_exp, self.h);
-
-        // (c*x)T1 + (c*x^2)T2
-        // T1^(c*x)T2^(c*x^2)
-        // (T1^(x)T2^(x^2))^c
 
         let g_scal: ScalarField = c * x;
         let h_scal: ScalarField = c * x * x;

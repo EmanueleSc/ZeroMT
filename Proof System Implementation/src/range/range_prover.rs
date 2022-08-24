@@ -14,9 +14,7 @@ pub struct RangeProver<'a> {
     /// public generator
     g: &'a G1Point,
     h: &'a G1Point,
-    /// sender balance
     remaining_balance: usize,
-    /// recipients amounts
     amounts: &'a Vec<usize>,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
@@ -264,84 +262,3 @@ impl<'a> RangeProver<'a> {
         PolyVector::new(r_vec_left, r_vec_right)
     }
 }
-
-/*#[test]
-pub fn get_a_l_test() {
-    let test_balance: usize = 42;
-    let test_amounts: Vec<usize> = [1, 2, 3, 4, 5].to_vec();
-
-    let mut test_a_l: Vec<i8> = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 0, 1, 0, 1, 0,
-    ]
-    .to_vec();
-    let mut one_bits = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 1,
-    ]
-    .to_vec();
-    let mut two_bits = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 1, 0,
-    ]
-    .to_vec();
-    let mut three_bits = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 1, 1,
-    ]
-    .to_vec();
-    let mut four_bits = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 1, 0, 0,
-    ]
-    .to_vec();
-    let mut five_bits = [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 1, 0, 1,
-    ]
-    .to_vec();
-
-    test_a_l.reverse();
-    one_bits.reverse();
-    two_bits.reverse();
-    three_bits.reverse();
-    four_bits.reverse();
-    five_bits.reverse();
-
-    test_a_l.extend(one_bits);
-    test_a_l.extend(two_bits);
-    test_a_l.extend(three_bits);
-    test_a_l.extend(four_bits);
-    test_a_l.extend(five_bits);
-
-    let test_a_l_scalar: Vec<ScalarField> =
-        test_a_l.iter().map(|bit| ScalarField::from(*bit)).collect();
-    let result_a_l: Vec<ScalarField> = Utils::get_a_l(test_balance, &test_amounts);
-
-    assert_eq!(result_a_l, test_a_l_scalar);
-}*/
-
-/*#[test]
-pub fn get_a_r_test() {
-    let test_a_l_scalar: Vec<ScalarField> = [1, 0, 1, 1, 0, 0, 0, 0, 1]
-        .to_vec()
-        .iter()
-        .map(|bit| ScalarField::from(*bit))
-        .collect();
-
-    let test_a_r_scalar: Vec<ScalarField> = [0, -1, 0, 0, -1, -1, -1, -1, 0]
-        .to_vec()
-        .iter()
-        .map(|bit| ScalarField::from(*bit))
-        .collect();
-
-    let result_a_r: Vec<ScalarField> = Utils::get_a_r(&test_a_l_scalar);
-
-    assert_eq!(result_a_r, test_a_r_scalar);
-}*/
