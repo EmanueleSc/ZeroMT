@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ZeroMTCosts {
@@ -204,7 +203,6 @@ public class ZeroMTCosts {
                 n /* [<2^n, h'>] */ +
                 1 /* [ * <2^n, h'>] */ +
                 1 /* [mu * h] */ +
-                // Negazioni
                 1 /* [ - z ] */ +
                 1 /* [ - mu ] */;
         int eccMulCost = calculateEccMul(eccMul, optimized);
@@ -284,7 +282,6 @@ public class ZeroMTCosts {
                 1 /* [ * (z^2] */ +
                 1 /* [ * (Cl] */ +
                 (m - 1) /* [z^i+1 * Ci] */ +
-                // Negazioni
                 1 /* [ - sumD ] */ +
                 1 /* [ - sumCi ] */;
         int eccMulCost = calculateEccMul(eccMul, optimized);
@@ -310,7 +307,6 @@ public class ZeroMTCosts {
 
         int eccMul = (m - 1) /* [ * (y - yi))] */ +
                 1 /* [ * (sumCCi))] */ +
-                // Negazioni
                 (m - 1) /* [ - yi ] */ +
                 (m - 1) /* [ - Ci ] */;
         int eccMulCost = calculateEccMul(eccMul, optimized);
