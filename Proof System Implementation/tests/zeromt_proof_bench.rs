@@ -69,6 +69,8 @@ mod zeromt_proof_tests {
                 let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
+                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+
                 let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
                 let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
 
@@ -200,7 +202,7 @@ mod zeromt_proof_tests {
                 .verify_proof(&sigma_y_proof);
                 let sigma_y_verifier_duration: Duration = start.elapsed();
 
-                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let start = Instant::now();
 
                 let h_first_vec: Vec<G1Point> = (0..m * n)
                     .map(|i: usize| {
@@ -239,7 +241,6 @@ mod zeromt_proof_tests {
                         .sum::<G1Point>();
                 let phu: G1Point = p + -h.mul(range_proof.get_mu().into_repr()).into_affine();
 
-                let start = Instant::now();
                 let inner_proof: InnerProof = InnerProver::new(
                     &mut prover_trans,
                     &g_vec,
@@ -254,6 +255,44 @@ mod zeromt_proof_tests {
                 let inner_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
+
+                let h_first_vec: Vec<G1Point> = (0..m * n)
+                    .map(|i: usize| {
+                        h_vec[i]
+                            .mul(y.pow([(i as u64)]).inverse().unwrap().into_repr())
+                            .into_affine()
+                    })
+                    .collect();
+
+                let p: G1Point = *range_proof.get_a()
+                    + range_proof.get_s().mul(x.into_repr()).into_affine()
+                    + -Utils::inner_product_point_scalar(
+                        &g_vec,
+                        &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one()),
+                    )
+                    .unwrap()
+                    .mul((z).into_repr())
+                    .into_affine()
+                    + Utils::inner_product_point_scalar(
+                        &h_first_vec,
+                        &Utils::generate_scalar_exp_vector(m * n, &y),
+                    )
+                    .unwrap()
+                    .mul((z).into_repr())
+                    .into_affine()
+                    + (1..=m)
+                        .map(|j: usize| {
+                            Utils::inner_product_point_scalar(
+                                &h_first_vec[((j - 1) * n)..(j * n)].to_vec(),
+                                &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2)),
+                            )
+                            .unwrap()
+                            .mul((z.pow([1 + (j as u64)])).into_repr())
+                            .into_affine()
+                        })
+                        .sum::<G1Point>();
+                let phu: G1Point = p + -h.mul(range_proof.get_mu().into_repr()).into_affine();
+
                 let inner_result =
                     InnerVerifier::new(&mut verifier_trans, &g_vec, &h_first_vec, &phu, &t_hat, &u)
                         .verify_proof_multiscalar(&inner_proof);
