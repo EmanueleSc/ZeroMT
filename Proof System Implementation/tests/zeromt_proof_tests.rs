@@ -4,6 +4,7 @@ mod zeromt_proof_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use serial_test::serial;
+    use std::io::Error;
     use zeromt::{ElGamal, Utils, ZeroMTProof, ZeroMTProver, ZeroMTVerifier};
 
     #[test]
@@ -83,13 +84,13 @@ mod zeromt_proof_tests {
                 )
                 .generate_proof(&mut rng);
 
-                let verification_result = ZeroMTVerifier::new(
+                let verification_result: Result<(), Error> = ZeroMTVerifier::new(
                     &mut verifier_trans,
                     &g,
                     &h,
                     m,
                     n,
-                    &amounts,
+                    amounts.len(),
                     &g_vec,
                     &h_vec,
                     &u,

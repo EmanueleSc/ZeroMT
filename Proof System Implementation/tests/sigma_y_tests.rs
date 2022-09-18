@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod sigma_y_tests {
-
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-
     use merlin::Transcript;
+    use std::io::Error;
     use zeromt::{ElGamal, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils};
 
     #[test]
@@ -50,20 +49,18 @@ mod sigma_y_tests {
                     .map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0)
                     .collect();
 
-                let mut prover: SigmaYProver =
-                    SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys);
+                let proof: SigmaYProof =
+                    SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys)
+                        .generate_proof(&mut rng);
 
-                let proof: SigmaYProof = prover.generate_proof(&mut rng);
-
-                let mut verifier: SigmaYVerifier = SigmaYVerifier::new(
+                let result: Result<(), Error> = SigmaYVerifier::new(
                     &mut verifier_trans,
                     &sender_pub_key,
                     &recipients_pub_keys,
                     &c_vec,
                     &c_bar_vec,
-                );
-
-                let result = verifier.verify_proof(&proof);
+                )
+                .verify_proof(&proof);
 
                 assert!(result.is_ok(), "Verifier fails");
 

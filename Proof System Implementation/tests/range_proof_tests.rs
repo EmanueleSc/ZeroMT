@@ -50,9 +50,13 @@ mod range_proof_tests {
                 )
                 .generate_proof(&mut rng);
 
-                let (result, _x, _y, _z) =
-                    RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n)
-                        .verify_proof(&proof);
+                let (result, _x, _y, _z): (
+                    Result<(), Error>,
+                    ScalarField,
+                    ScalarField,
+                    ScalarField,
+                ) = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n)
+                    .verify_proof(&proof);
 
                 assert!(result.is_ok(), "Verifier fails");
 
@@ -164,11 +168,11 @@ mod range_proof_tests {
                 )
                 .generate_proof();
 
-                let inner_result =
+                let inner_result: Result<(), Error> =
                     InnerVerifier::new(&mut verifier_trans, &g_vec, &h_first_vec, &phu, &t_hat, &u)
                         .verify_proof(&inner_proof);
 
-                let inner_multiscalar_result = InnerVerifier::new(
+                let inner_multiscalar_result: Result<(), Error> = InnerVerifier::new(
                     &mut verifier_multiscalar_trans,
                     &g_vec,
                     &h_first_vec,

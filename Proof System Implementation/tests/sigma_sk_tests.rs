@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod sigma_sk_tests {
-
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use ark_ec::{AffineCurve, ProjectiveCurve};
     use ark_ff::PrimeField;
     use merlin::Transcript;
-    use zeromt::{SigmaSKProof, SigmaSKProver, SigmaSKVerifier, Utils};
+    use std::io::Error;
+    use zeromt::{ElGamal, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, Utils};
     #[test]
     fn verify_sigma_sk_test() {
         let mut prover_trans: Transcript = Transcript::new(b"SigmaSKTest");
@@ -21,15 +21,13 @@ mod sigma_sk_tests {
             for _ in 0..=m_increases {
                 let sk: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
                 let g: G1Point = Utils::get_curve_generator();
-                let y: G1Point = g.mul(sk.into_repr()).into_affine();
+                let y: G1Point = ElGamal::elgamal_calculate_pub_key(&sk, &g);
 
-                let mut prover: SigmaSKProver = SigmaSKProver::new(&mut prover_trans, &g, &sk);
+                let proof: SigmaSKProof =
+                    SigmaSKProver::new(&mut prover_trans, &g, &sk).generate_proof(&mut rng);
 
-                let proof: SigmaSKProof = prover.generate_proof(&mut rng);
-
-                let mut verifier: SigmaSKVerifier =
-                    SigmaSKVerifier::new(&mut verifier_trans, &g, &y);
-                let result = verifier.verify_proof(&proof);
+                let result: Result<(), Error> =
+                    SigmaSKVerifier::new(&mut verifier_trans, &g, &y).verify_proof(&proof);
 
                 assert!(result.is_ok(), "Verifier fails");
 

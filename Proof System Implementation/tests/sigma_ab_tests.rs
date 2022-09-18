@@ -3,6 +3,7 @@ mod sigma_ab_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
     use rand::Rng;
+    use std::io::Error;
     use zeromt::{ElGamal, SigmaABProof, SigmaABProver, SigmaABVerifier, Utils};
 
     pub fn get_mock_balances<R: Rng>(
@@ -68,7 +69,7 @@ mod sigma_ab_tests {
                 )
                 .generate_proof(&mut rng);
 
-                let result = SigmaABVerifier::new(
+                let result: Result<(), Error> = SigmaABVerifier::new(
                     &mut verifier_trans,
                     &g,
                     &d,
