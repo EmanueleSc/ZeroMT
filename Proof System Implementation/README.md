@@ -368,7 +368,11 @@ let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d
 
 ```
 ### $\Sigma$-protocol `y`
-To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i}=a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i}=a_{i} \cdot g + {r} \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
+To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
+
+$$\bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge$$
+
+$$ D=r \cdot g)^{m-1}_{i=1}.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
