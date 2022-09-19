@@ -12,9 +12,7 @@ pub struct ZeroMTVerifier<'a> {
     transcript: &'a mut Transcript,
     g: &'a G1Point,
     h: &'a G1Point,
-    m: usize,
     n: usize,
-    amounts: usize,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
     u: &'a G1Point,
@@ -32,9 +30,7 @@ impl<'a> ZeroMTVerifier<'a> {
         transcript: &'a mut Transcript,
         g: &'a G1Point,
         h: &'a G1Point,
-        m: usize,
         n: usize,
-        amounts: usize,
         g_vec: &'a Vec<G1Point>,
         h_vec: &'a Vec<G1Point>,
         u: &'a G1Point,
@@ -51,9 +47,7 @@ impl<'a> ZeroMTVerifier<'a> {
             transcript,
             g,
             h,
-            m,
             n,
-            amounts,
             g_vec,
             h_vec,
             u,
@@ -69,11 +63,11 @@ impl<'a> ZeroMTVerifier<'a> {
 
     pub fn verify_proof(&mut self, proof: &ZeroMTProof) -> Result<(), Error> {
         let (range_proof_result, x, y, z) =
-            RangeVerifier::new(self.transcript, self.g, self.h, self.amounts, self.n)
+            RangeVerifier::new(self.transcript, self.g, self.h, self.c_vec.len(), self.n)
                 .verify_proof(proof.get_range_proof());
 
         let (u, h_first_vec, phu) = Self::get_inner_arguments(
-            self.m,
+            self.c_vec.len() + 1,
             self.n,
             &x,
             &y,

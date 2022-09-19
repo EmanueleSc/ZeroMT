@@ -2,25 +2,8 @@
 mod sigma_ab_tests {
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
     use merlin::Transcript;
-    use rand::Rng;
     use std::io::Error;
     use zeromt::{ElGamal, SigmaABProof, SigmaABProver, SigmaABVerifier, Utils};
-
-    pub fn get_mock_balances<R: Rng>(
-        m: usize,
-        n: usize,
-        rng: &mut R,
-    ) -> (usize, Vec<usize>, usize) {
-        let total_balance: usize = (i128::pow(2, n.try_into().unwrap()) - 1) as usize;
-
-        let mut amounts: Vec<usize> = [].to_vec();
-        for _ in 1..m {
-            let to_add: usize = rng.gen_range(0..total_balance / (m - 1));
-            amounts.push(to_add);
-        }
-        let balance_remaining: usize = total_balance - amounts.iter().sum::<usize>();
-        (total_balance, amounts, balance_remaining)
-    }
 
     #[test]
     fn verify_sigma_ab_test() {
@@ -38,7 +21,8 @@ mod sigma_ab_tests {
                 let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-                let (balance, amounts, balance_remaining) = get_mock_balances(m, n, &mut rng);
+                let (balance, amounts, balance_remaining) =
+                    Utils::get_mock_balances(m, n, &mut rng);
 
                 // Random private keys
                 let sender_priv_key: ScalarField =

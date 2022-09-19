@@ -11,7 +11,7 @@ use super::range_proof::RangeProof;
 
 pub struct RangeVerifier<'a> {
     transcript: &'a mut Transcript,
-    amounts: usize,
+    m: usize,
     g: &'a G1Point,
     h: &'a G1Point,
     n: usize,
@@ -22,13 +22,13 @@ impl<'a> RangeVerifier<'a> {
         transcript: &'a mut Transcript,
         g: &'a G1Point,
         h: &'a G1Point,
-        amounts: usize,
+        m: usize,
         n: usize,
     ) -> Self {
         transcript.domain_sep(b"RangeProof");
         RangeVerifier {
             transcript,
-            amounts,
+            m,
             g,
             h,
             n,
@@ -39,8 +39,6 @@ impl<'a> RangeVerifier<'a> {
         &mut self,
         proof: &RangeProof,
     ) -> (Result<(), Error>, ScalarField, ScalarField, ScalarField) {
-        let m: usize = self.amounts + 1;
-
         let _result = self.transcript.append_point(b"A", proof.get_a());
         let _result = self.transcript.append_point(b"S", proof.get_s());
 
@@ -62,11 +60,11 @@ impl<'a> RangeVerifier<'a> {
         let _result = self.transcript.append_scalar(b"s_tau", proof.get_s_tau());
 
         let delta_left: ScalarField = (z - (z * z))
-            * Utils::generate_scalar_exp_vector(m * self.n, &y)
+            * Utils::generate_scalar_exp_vector(self.m * self.n, &y)
                 .iter()
                 .sum::<ScalarField>();
 
-        let delta_right: ScalarField = (1..=m)
+        let delta_right: ScalarField = (1..=self.m)
             .map(|j: usize| {
                 z.pow([2 + (j as u64)])
                     * Utils::generate_scalar_exp_vector(self.n, &ScalarField::from(2))

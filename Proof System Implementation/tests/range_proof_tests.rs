@@ -55,8 +55,7 @@ mod range_proof_tests {
                     ScalarField,
                     ScalarField,
                     ScalarField,
-                ) = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n)
-                    .verify_proof(&proof);
+                ) = RangeVerifier::new(&mut verifier_trans, &g, &h, m, n).verify_proof(&proof);
 
                 assert!(result.is_ok(), "Verifier fails");
 
@@ -112,7 +111,7 @@ mod range_proof_tests {
                     ScalarField,
                     ScalarField,
                     ScalarField,
-                ) = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n)
+                ) = RangeVerifier::new(&mut verifier_trans, &g, &h, m, n)
                     .verify_proof(&range_proof);
 
                 let mut verifier_multiscalar_trans: Transcript = verifier_trans.clone();

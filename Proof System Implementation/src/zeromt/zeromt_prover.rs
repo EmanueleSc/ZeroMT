@@ -6,8 +6,8 @@ use crate::{
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::{Field, One, PrimeField};
+use ark_std::rand::Rng;
 use merlin::Transcript;
-use rand::Rng;
 
 pub struct ZeroMTProver<'a> {
     transcript: &'a mut Transcript,
@@ -18,7 +18,6 @@ pub struct ZeroMTProver<'a> {
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
     u: &'a G1Point,
-    m: usize,
     n: usize,
     d: &'a G1Point,
     c_r: &'a G1Point,
@@ -38,7 +37,6 @@ impl<'a> ZeroMTProver<'a> {
         g_vec: &'a Vec<G1Point>,
         h_vec: &'a Vec<G1Point>,
         u: &'a G1Point,
-        m: usize,
         n: usize,
         d: &'a G1Point,
         c_r: &'a G1Point,
@@ -57,7 +55,6 @@ impl<'a> ZeroMTProver<'a> {
             g_vec,
             h_vec,
             u,
-            m,
             n,
             d,
             c_r,
@@ -90,7 +87,7 @@ impl<'a> ZeroMTProver<'a> {
         .generate_proof(rng);
 
         let (u, h_first_vec, phu) = Self::get_inner_arguments(
-            self.m,
+            self.amounts.len() + 1,
             self.n,
             &x,
             &y,

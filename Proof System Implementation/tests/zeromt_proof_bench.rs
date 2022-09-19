@@ -163,7 +163,7 @@ mod zeromt_proof_tests {
                 // Proofs verification
                 let start = Instant::now();
                 let (range_proof_result, x, y, z) =
-                    RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n)
+                    RangeVerifier::new(&mut verifier_trans, &g, &h, m, n)
                         .verify_proof(&range_proof);
                 let range_verifier_duration: Duration = start.elapsed();
 

@@ -4,8 +4,8 @@ use ark_crypto_primitives::commitment::pedersen::Window;
 use ark_crypto_primitives::crh::pedersen::CRH;
 use ark_ec::{AffineCurve, ProjectiveCurve};
 use ark_ff::{Field, PrimeField, Zero};
+use ark_std::rand::Rng;
 use ark_std::UniformRand;
-use rand::Rng;
 use std::io::Error;
 
 use crate::errors::utils_error::throw;
