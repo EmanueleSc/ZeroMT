@@ -41,9 +41,47 @@ For what concerns the elliptic curve underlying all the operations on elements o
 ## Usage of the library
 
 ### *ZeroMT* full proof system
+To prove that
+- each of the currency amounts in $\mathbf{a}$ is positive $$\forall a_i \in (a_1, \dots, a_{m-1}): a_i \in [0,MAX], \; MAX = 2^n - 1;$$
+- sender remaining currency balance $b'$ after the transfer  is positive $$b' \in [0,MAX], \; MAX = 2^n - 1;$$
+- a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed  $$y = sk \cdot g;$$
+- a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g;$$
+- a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D);$$
+- the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i}=a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i}=a_{i} \cdot g + {r} \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
 
+Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
+- $n$, dimension in bits of the range proof;
+- $g \in \mathbb{G}$, random generator;
+- $h \in \mathbb{G}$, random generator;
+- $\mathbf{g} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{h} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{a} \in \mathbb{Z}_p^{m-1}$, cryptocurrency amounts to be transferred;
+- $b' \in \mathbb{Z}_p$, sender remaining balance;
+- $u \in \mathbb{G}$, random generator required for the inner-product argument;
+- $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme;
+- $D \in \mathbb{G}$, factor for ElGamal scheme;
+- $C_R \in \mathbb{G}$, right side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $sk \in \mathbb{Z}_p$, sender private key;
+- $y \in \mathbb{G}$, sender public key;
+- $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys.
 
-
+Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
+- $n$, dimension in bits of the range proof;
+- $g \in \mathbb{G}$, random generator;
+- $h \in \mathbb{G}$, random generator;
+- $\mathbf{g} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{h} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $u \in \mathbb{G}$, random generator required for the inner-product argument;
+- $D \in \mathbb{G}$, factor for ElGamal scheme;
+- $C_L \in \mathbb{G}$, left side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $C_R \in \mathbb{G}$, right side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $\mathbf{C} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and sender public key;
+- $\bar{\mathbf{C}} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and recipients' public keys;
+- $y \in \mathbb{G}$, sender public key;
+- $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys.
 ```rust
 use std::io::Error;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
@@ -53,7 +91,7 @@ use zeromt::{ElGamal, Utils, ZeroMTProof, ZeroMTProver, ZeroMTVerifier};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
@@ -93,13 +131,45 @@ let c_vec: Vec<G1Point> = amounts.iter().map(|a: &usize| ElGamal::elgamal_encryp
 let c_bar_vec: Vec<G1Point> = amounts.iter().zip(recipients_pub_keys.iter()).map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0).collect();
 
 // Proof generation
-let proof: ZeroMTProof = ZeroMTProver::new(&mut prover_trans, &g,&h,balance_remaining,&amounts,&g_vec,&h_vec,&u,m,n,&d,&c_r,&sender_priv_key,&r,&sender_pub_key,&recipients_pub_keys).generate_proof(&mut rng);
+let proof: ZeroMTProof = ZeroMTProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts, &g_vec, &h_vec, &u, n, &d, &c_r, &sender_priv_key, &r, &sender_pub_key, &recipients_pub_keys).generate_proof(&mut rng);
 // Proof verification
-let verification_result: Result<(), Error> = ZeroMTVerifier::new(&mut verifier_trans,&g,&h,m,n,amounts.len(),&g_vec,&h_vec,&u,&d,&c_r, &c_l,&c_vec,&c_bar_vec,&sender_pub_key,&recipients_pub_keys).verify_proof(&proof);
+let verification_result: Result<(), Error> = ZeroMTVerifier::new(&mut verifier_trans, &g, &h, n, &g_vec, &h_vec, &u, &d, &c_r, &c_l, &c_vec, &c_bar_vec, &sender_pub_key, &recipients_pub_keys).verify_proof(&proof);
 ```
 
-### *Bulletproofs* aggregated range proof
+### *Bulletproofs* aggregated range proof and inner-product argument
+To prove that
+- each of the currency amounts in $\mathbf{a}$ is positive
+    $$\forall a_i \in (a_1, \dots, a_{m-1}): a_i \in [0,MAX], \; MAX = 2^n - 1;$$
+- sender remaining currency balance $b'$ after the transfer  is positive
+    $$b' \in [0,MAX], \; MAX = 2^n - 1.$$
 
+Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
+- $n$, dimension in bits of the range proof;
+- $g \in \mathbb{G}$, random generator;
+- $h \in \mathbb{G}$, random generator;
+- $\mathbf{g} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{h} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{a} \in \mathbb{Z}_p^{m-1}$, cryptocurrency amounts to be transferred;
+- $b' \in \mathbb{Z}_p$, sender remaining balance;
+- $u \in \mathbb{G}$, random generator required for the inner-product argument;
+- $\mathbf{l} \in \mathbb{Z}_p^{m \cdot n}$, former element involved in the inner product to be verified; 
+- $\mathbf{r} \in \mathbb{Z}_p^{m \cdot n}$, latter element involved in the inner product to be verified;
+- $c \in \mathbb{Z}_p$, inner product to verify. Obtained from the range proof as $\hat{t} = \langle \mathbf{l}, \mathbf{r} \rangle$;
+- $P \in \mathbb{G}$, commitment to elements involved in an inner product. Obtained from the range proof as $P - \mu \cdot h$.
+
+Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
+- $n$, dimension in bits of the range proof;
+- $m$, number of cryptocurrency amounts to be transferred (increased by one);
+- $g \in \mathbb{G}$, random generator;
+- $h \in \mathbb{G}$, random generator;
+- $\mathbf{g} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $\mathbf{h} \in \mathbb{G}^{m \cdot n}$, vector of random generators;
+- $u \in \mathbb{G}$, random generator required for the inner-product argument;
+- $c \in \mathbb{Z}_p$, inner product to verify. Obtained from the range proof as $\hat{t} = \langle \mathbf{l}, \mathbf{r} \rangle$;
+- $P \in \mathbb{G}$, commitment to elements involved in an inner product. Obtained from the range proof as $P - \mu \cdot h$.
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
@@ -110,7 +180,7 @@ use zeromt::{ InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver, R
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
@@ -132,7 +202,7 @@ let (_balance_start, amounts, balance_remaining) = Utils::get_mock_balances(m, n
 // Range proof generation
 let (range_proof, t_hat, l_poly_vec, r_poly_vec, _x, _y, _z): (RangeProof, ScalarField, Vec<ScalarField>, Vec<ScalarField>, ScalarField, ScalarField, ScalarField) = RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n).generate_proof(&mut rng);
 // Range proof verification
-let (range_proof_result, x, y, z): (Result<(), Error>, ScalarField, ScalarField, ScalarField) = RangeVerifier::new(&mut verifier_trans, &g, &h, amounts.len(), n).verify_proof(&range_proof);
+let (range_proof_result, x, y, z): (Result<(), Error>, ScalarField, ScalarField, ScalarField) = RangeVerifier::new(&mut verifier_trans, &g, &h, m, n).verify_proof(&range_proof);
 
 // Random generator u
 let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
@@ -150,10 +220,13 @@ let inner_result: Result<(), Error> = InnerVerifier::new(&mut verifier_trans, &g
 To prove a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed $$y = sk \cdot g.$$
 
 Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $sk \in \mathbb{Z}_p$, sender private key.
 
 Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $y \in \mathbb{G}$, sender public key.
 
@@ -167,7 +240,7 @@ use zeromt::{SigmaSKProof, SigmaSKProver, SigmaSKVerifier, Utils, ElGamal};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
@@ -193,10 +266,13 @@ let result: Result<(), Error> = SigmaSKVerifier::new(&mut verifier_trans, &g, &y
 To prove a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g.$$
 
 Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme.
 
 Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $D \in \mathbb{G}$, factor for ElGamal scheme.
 ```rust
@@ -209,7 +285,7 @@ use zeromt::{SigmaRProof, SigmaRProver, SigmaRVerifier, Utils, ElGamal};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
@@ -235,6 +311,8 @@ let result: Result<(), Error> = SigmaRVerifier::new(&mut verifier_trans, &g, &d)
 To prove a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D).$$
 
 Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $D \in \mathbb{G}$, factor for ElGamal scheme;
 - $C_R \in \mathbb{G}$, right side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
@@ -243,6 +321,7 @@ Prover $\mathcal{P}$ inputs:
 - $b' \in \mathbb{Z}_p$, sender remaining balance.
 
 Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
 - $g \in \mathbb{G}$, random generator;
 - $D \in \mathbb{G}$, factor for ElGamal scheme;
 - $C_L \in \mathbb{G}$, left side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
@@ -252,13 +331,12 @@ Verifier $\mathcal{V}$ inputs:
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use merlin::Transcript;
-use rand::Rng;
 use std::io::Error;
 use zeromt::{ElGamal, SigmaABProof, SigmaABProver, SigmaABVerifier, Utils};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
@@ -271,7 +349,7 @@ let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
 // Randomness r
 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random values for sender balance and cryptocurrency amounts to be transferred
-let (balance, amounts, balance_remaining) = get_mock_balances(m, n, &mut rng);
+let (balance, amounts, balance_remaining) = Utils::get_mock_balances(m, n, &mut rng);
 // Random sender private key   
 let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Sender public key, generated by means of ElGamal encryption
@@ -293,13 +371,16 @@ let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d
 To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i}=a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i}=a_{i} \cdot g + {r} \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
 
 Prover $\mathcal{P}$ inputs:
+- Random Number Generator in `rand::Rng`;
+- A `merlin` transcript;
 - $y \in \mathbb{G}$, sender public key;
 - $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys
 - $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme.
 
 Verifier $\mathcal{V}$ inputs:
+- A `merlin` transcript;
 - $y \in \mathbb{G}$, sender public key;
-- $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys
+- $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys;
 - $\mathbf{C} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and sender public key;
 - $\bar{\mathbf{C}} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and recipients' public keys.
 
@@ -312,7 +393,7 @@ use zeromt::{ElGamal, SigmaYProof, SigmaYProver, SigmaYVerifier, Utils};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
-// Cryptocurrency amounts to be transferred (increased by one)
+// Number of cryptocurrency amounts to be transferred (increased by one)
 let mut m: usize = 16;
 // Dimension in bit of the range proof
 let mut n: usize = 16;
