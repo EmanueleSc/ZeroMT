@@ -15,7 +15,6 @@ pub struct SigmaABVerifier<'a> {
     c_r: &'a G1Point,
     c_l: &'a G1Point,
     c_vec: &'a Vec<G1Point>,
-    a: usize,
 }
 
 impl<'a> SigmaABVerifier<'a> {
@@ -26,7 +25,6 @@ impl<'a> SigmaABVerifier<'a> {
         c_r: &'a G1Point,
         c_l: &'a G1Point,
         c_vec: &'a Vec<G1Point>,
-        a: usize,
     ) -> Self {
         transcript.domain_sep(b"SigmaAB");
 
@@ -37,7 +35,6 @@ impl<'a> SigmaABVerifier<'a> {
             c_r,
             c_l,
             c_vec,
-            a,
         }
     }
 
@@ -51,12 +48,12 @@ impl<'a> SigmaABVerifier<'a> {
         let _result = self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
         let _result = self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
 
-        let left_eq_sum_d_z: G1Point = (1..=self.a)
+        let left_eq_sum_d_z: G1Point = (1..=self.c_vec.len())
             .map(|i| self.d.mul(z.pow([2 + (i as u64)])).into_affine())
             .sum::<G1Point>();
 
         let left_eq_c_r_d_z: G1Point = (self.c_r.into_projective()
-            - self.d.mul(ScalarField::from(self.a as i128)))
+            - self.d.mul(ScalarField::from(self.c_vec.len() as i128)))
         .into_affine()
         .mul(z.pow([2]).into_repr())
         .into_affine();
@@ -66,7 +63,7 @@ impl<'a> SigmaABVerifier<'a> {
             .into_affine()
             + self.g.mul(proof.get_s_ab().into_repr()).into_affine();
 
-        let right_eq_sum_c_z: G1Point = (1..=self.a)
+        let right_eq_sum_c_z: G1Point = (1..=self.c_vec.len())
             .map(|i| {
                 self.c_vec
                     .get(i - 1)

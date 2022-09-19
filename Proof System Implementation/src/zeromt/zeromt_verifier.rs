@@ -104,7 +104,6 @@ impl<'a> ZeroMTVerifier<'a> {
             self.c_r,
             self.c_l,
             self.c_vec,
-            self.amounts,
         )
         .verify_proof(proof.get_sigma_ab_proof());
 

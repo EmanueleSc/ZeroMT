@@ -69,16 +69,9 @@ mod sigma_ab_tests {
                 )
                 .generate_proof(&mut rng);
 
-                let result: Result<(), Error> = SigmaABVerifier::new(
-                    &mut verifier_trans,
-                    &g,
-                    &d,
-                    &c_r,
-                    &c_l,
-                    &c_vec,
-                    amounts.len(),
-                )
-                .verify_proof(&proof);
+                let result: Result<(), Error> =
+                    SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec)
+                        .verify_proof(&proof);
 
                 assert!(result.is_ok(), "Verifier fails");
 

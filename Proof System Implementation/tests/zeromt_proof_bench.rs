@@ -179,16 +179,9 @@ mod zeromt_proof_tests {
                 let sigma_r_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_ab_result = SigmaABVerifier::new(
-                    &mut verifier_trans,
-                    &g,
-                    &d,
-                    &c_r,
-                    &c_l,
-                    &c_vec,
-                    amounts.len(),
-                )
-                .verify_proof(&sigma_ab_proof);
+                let sigma_ab_result =
+                    SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec)
+                        .verify_proof(&sigma_ab_proof);
                 let sigma_ab_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
