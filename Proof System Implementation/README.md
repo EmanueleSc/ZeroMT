@@ -1,16 +1,3 @@
-- [Proof System Implementation](#proof-system-implementation)
-  - [External crates](#external-crates)
-    - [`merlin`](#merlin)
-    - [`arkworks` ecosystem](#arkworks-ecosystem)
-  - [Elliptic curve of choice](#elliptic-curve-of-choice)
-  - [Usage of the library](#usage-of-the-library)
-    - [*ZeroMT* full proof system](#zeromt-full-proof-system)
-    - [*Bulletproofs* aggregated range proof](#bulletproofs-aggregated-range-proof)
-    - [$\Sigma$-protocol `sk`](#sigma-protocol-sk)
-    - [$\Sigma$-protocol `r`](#sigma-protocol-r)
-    - [$\Sigma$-protocol `ab`](#sigma-protocol-ab)
-    - [$\Sigma$-protocol `y`](#sigma-protocol-y)
-
 # Proof System Implementation
 As the *ZeroMT* multi-transfer zero-knowledge proof system can be seen as a combination of multiple proof systems, the objective of its implementation is a library that exposes each proof system in a non-interactive form, as a single, modular unit. Given the modular design, any given user should be enabled to include in any possible application either the overall *ZeroMT* proof system or just a few of the available proof systems. Furthermore, this design permits the evaluation of the performances, in terms of execution time and memory utilization, of each of the implemented protocols.
 
@@ -158,8 +145,8 @@ Prover $\mathcal{P}$ inputs:
 - $\mathbf{a} \in \mathbb{Z}_p^{m-1}$, cryptocurrency amounts to be transferred;
 - $b' \in \mathbb{Z}_p$, sender remaining balance;
 - $u \in \mathbb{G}$, random generator required for the inner-product argument;
-- $\mathbf{l} \in \mathbb{Z}_p^{m \cdot n}$, former element involved in the inner product to be verified; 
-- $\mathbf{r} \in \mathbb{Z}_p^{m \cdot n}$, latter element involved in the inner product to be verified;
+- $\mathbf{l} \in \mathbb{Z}_p^{m \cdot n}$, former element involved in the inner product to be verified. Obtained from the range proof; 
+- $\mathbf{r} \in \mathbb{Z}_p^{m \cdot n}$, latter element involved in the inner product to be verified. Obtained from the range proof;
 - $c \in \mathbb{Z}_p$, inner product to verify. Obtained from the range proof as $\hat{t} = \langle \mathbf{l}, \mathbf{r} \rangle$;
 - $P \in \mathbb{G}$, commitment to elements involved in an inner product. Obtained from the range proof as $P - \mu \cdot h$.
 
