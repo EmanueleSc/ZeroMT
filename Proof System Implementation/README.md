@@ -147,7 +147,15 @@ let inner_proof: InnerProof = InnerProver::new(&mut prover_trans, &g_vec, &h_fir
 let inner_result: Result<(), Error> = InnerVerifier::new(&mut verifier_trans, &g_vec, &h_first_vec, &phu, &t_hat, &u).verify_proof_multiscalar(&inner_proof);
 ```
 ### $\Sigma$-protocol `sk`
+To prove a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed $$y = sk \cdot g.$$
 
+Prover $\mathcal{P}$ inputs:
+- $g \in \mathbb{G}$, random generator;
+- $sk \in \mathbb{Z}_p$, sender private key.
+
+Verifier $\mathcal{V}$ inputs:
+- $g \in \mathbb{G}$, random generator;
+- $y \in \mathbb{G}$, sender public key.
 
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
@@ -182,8 +190,15 @@ let result: Result<(), Error> = SigmaSKVerifier::new(&mut verifier_trans, &g, &y
                     
 ```
 ### $\Sigma$-protocol `r`
+To prove a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g.$$
 
-  
+Prover $\mathcal{P}$ inputs:
+- $g \in \mathbb{G}$, random generator;
+- $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme.
+
+Verifier $\mathcal{V}$ inputs:
+- $g \in \mathbb{G}$, random generator;
+- $D \in \mathbb{G}$, factor for ElGamal scheme.
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_ec::{AffineCurve, ProjectiveCurve};
@@ -216,20 +231,23 @@ let proof: SigmaRProof = SigmaRProver::new(&mut prover_trans, &g, &r).generate_p
 let result: Result<(), Error> = SigmaRVerifier::new(&mut verifier_trans, &g, &d).verify_proof(&proof);
 ```
 ### $\Sigma$-protocol `ab`
+
+To prove a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D).$$
+
 Prover $\mathcal{P}$ inputs:
-- $g \in \mathbb{G}$
-- $D \in \mathbb{G}$
-- $C_R \in \mathbb{G}$
-- $sk \in \mathbb{Z}_p$
-- $\mathbf{a} \in \mathbb{Z}_p^{m-1}$
-- $b' \in \mathbb{Z}_p$
+- $g \in \mathbb{G}$, random generator;
+- $D \in \mathbb{G}$, factor for ElGamal scheme;
+- $C_R \in \mathbb{G}$, right side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $sk \in \mathbb{Z}_p$, sender private key;
+- $\mathbf{a} \in \mathbb{Z}_p^{m-1}$, cryptocurrency amounts to be transferred;
+- $b' \in \mathbb{Z}_p$, sender remaining balance.
 
 Verifier $\mathcal{V}$ inputs:
-- $g \in \mathbb{G}$
-- $D \in \mathbb{G}$
-- $C_L \in \mathbb{G}$
-- $C_R \in \mathbb{G}$
-- $\mathbf{C} \in \mathbb{G}^{m-1}$
+- $g \in \mathbb{G}$, random generator;
+- $D \in \mathbb{G}$, factor for ElGamal scheme;
+- $C_L \in \mathbb{G}$, left side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $C_R \in \mathbb{G}$, right side of the sender balance, encrypted by means of ElGamal encryption and sender public key;
+- $\mathbf{C} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and sender public key.
 
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
@@ -268,20 +286,22 @@ let c_vec: Vec<G1Point> = amounts.iter().map(|a:&usize| ElGamal::elgamal_encrypt
 // Proof generation
 let proof: SigmaABProof = SigmaABProver::new(&mut prover_trans, &g, &d, &c_r, balance_remaining, &amounts, &sender_priv_key).generate_proof(&mut rng);
 // Proof verification
-let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec, amounts.len()).verify_proof(&proof);
+let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec).verify_proof(&proof);
 
 ```
 ### $\Sigma$-protocol `y`
+To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i}=a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i}=a_{i} \cdot g + {r} \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
+
 Prover $\mathcal{P}$ inputs:
 - $y \in \mathbb{G}$, sender public key;
 - $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys
-- $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme;
+- $r \in \mathbb{Z}_p$, randomness associated with the ElGamal encryption scheme.
 
 Verifier $\mathcal{V}$ inputs:
 - $y \in \mathbb{G}$, sender public key;
 - $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys
 - $\mathbf{C} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and sender public key;
-- $\bar{\mathbf{C}} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and recipients' public keys;
+- $\bar{\mathbf{C}} \in \mathbb{G}^{m-1}$, cryptocurrency amounts, encrypted by means of ElGamal encryption and recipients' public keys.
 
 
 ```rust
