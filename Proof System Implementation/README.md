@@ -47,7 +47,11 @@ To prove that
 - a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed  $$y = sk \cdot g;$$
 - a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g;$$
 - a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D);$$
-- the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i}=a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i}=a_{i} \cdot g + {r} \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
+- the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
+
+$$\bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge$$
+
+$$ D=r \cdot g)^{m-1}_{i=1}.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
@@ -368,7 +372,9 @@ let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d
 
 ```
 ### $\Sigma$-protocol `y`
-To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
+To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred 
+
+$$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
 
 $$\bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge$$
 
