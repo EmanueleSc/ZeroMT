@@ -10,8 +10,8 @@ mod zeromt_proof_tests {
     #[test]
     #[serial]
     fn zeromt_proof_test() {
-        let n_increases: usize = 2;
-        let m_increases: usize = 5;
+        let n_increases: usize = 1;
+        let m_increases: usize = 1;
 
         let mut rng = ark_std::rand::thread_rng();
 
@@ -31,7 +31,7 @@ mod zeromt_proof_tests {
                 let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
                 let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
 
-                let (balance, amounts, balance_remaining) =
+                let (balance, amounts, remaining_balance) =
                     Utils::get_mock_balances(m, n, &mut rng);
 
                 // Random private keys
@@ -65,10 +65,9 @@ mod zeromt_proof_tests {
                     .collect();
 
                 let proof: ZeroMTProof = ZeroMTProver::new(
-                    &mut prover_trans,
                     &g,
                     &h,
-                    balance_remaining,
+                    remaining_balance,
                     &amounts,
                     &g_vec,
                     &h_vec,
@@ -81,10 +80,9 @@ mod zeromt_proof_tests {
                     &sender_pub_key,
                     &recipients_pub_keys,
                 )
-                .generate_proof(&mut rng);
+                .generate_proof(&mut rng, &mut prover_trans);
 
                 let verification_result: Result<(), Error> = ZeroMTVerifier::new(
-                    &mut verifier_trans,
                     &g,
                     &h,
                     n,
@@ -99,7 +97,7 @@ mod zeromt_proof_tests {
                     &sender_pub_key,
                     &recipients_pub_keys,
                 )
-                .verify_proof(&proof);
+                .verify_proof(&proof, &mut verifier_trans);
 
                 assert!(verification_result.is_ok(), "Verifier fails");
 

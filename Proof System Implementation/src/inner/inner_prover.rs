@@ -9,7 +9,6 @@ use merlin::Transcript;
 use super::inner_proof::InnerProof;
 
 pub struct InnerProver<'a> {
-    transcript: &'a mut Transcript,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
     p: &'a G1Point,
@@ -21,7 +20,6 @@ pub struct InnerProver<'a> {
 
 impl<'a> InnerProver<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         g_vec: &'a Vec<G1Point>,
         h_vec: &'a Vec<G1Point>,
         p: &'a G1Point,
@@ -30,9 +28,7 @@ impl<'a> InnerProver<'a> {
         b_vec: &'a Vec<ScalarField>,
         u: &'a G1Point,
     ) -> Self {
-        transcript.domain_sep(b"InnerProductArgument");
         InnerProver {
-            transcript,
             g_vec,
             h_vec,
             p,
@@ -43,13 +39,14 @@ impl<'a> InnerProver<'a> {
         }
     }
 
-    pub fn generate_proof(&mut self) -> InnerProof {
-        let x: ScalarField = self.transcript.challenge_scalar(b"x");
+    pub fn generate_proof(&mut self, transcript: &mut Transcript) -> InnerProof {
+        transcript.domain_sep(b"InnerProductArgument");
+        let x: ScalarField = transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
 
         self.inner_product_argument(
-            self.g_vec, self.h_vec, &ux, &p_first, self.a_vec, self.b_vec,
+            self.g_vec, self.h_vec, &ux, &p_first, self.a_vec, self.b_vec, transcript,
         )
     }
 
@@ -61,13 +58,14 @@ impl<'a> InnerProver<'a> {
         p: &G1Point,
         a_vec: &Vec<ScalarField>,
         b_vec: &Vec<ScalarField>,
+        transcript: &mut Transcript,
     ) -> InnerProof {
         let n: usize = g_vec.len();
         if n == 1 {
             let a: ScalarField = a_vec[0];
             let b: ScalarField = b_vec[0];
-            let _result = self.transcript.append_scalar(b"a", &a);
-            let _result = self.transcript.append_scalar(b"b", &b);
+            let _result = transcript.append_scalar(b"a", &a);
+            let _result = transcript.append_scalar(b"b", &b);
             InnerProof::new(a, b, [].to_vec(), [].to_vec())
         } else {
             let n_first = n / 2;
@@ -96,9 +94,9 @@ impl<'a> InnerProver<'a> {
             let mut l_vec: Vec<G1Point> = [l].to_vec();
             let mut r_vec: Vec<G1Point> = [r].to_vec();
 
-            let _result = self.transcript.append_point(b"l", &l);
-            let _result = self.transcript.append_point(b"r", &r);
-            let x: ScalarField = self.transcript.challenge_scalar(b"x");
+            let _result = transcript.append_point(b"l", &l);
+            let _result = transcript.append_point(b"r", &r);
+            let x: ScalarField = transcript.challenge_scalar(b"x");
 
             let g_first_left: Vec<G1Point> =
                 Utils::product_scalar_point(&x.inverse().unwrap(), &g_left);
@@ -129,8 +127,9 @@ impl<'a> InnerProver<'a> {
             let b_first: Vec<ScalarField> =
                 Utils::sum_scalar_scalar(&b_first_left, &b_first_right).unwrap();
 
-            let rec_proof: InnerProof =
-                self.inner_product_argument(&g_first, &h_first, u, &p_first, &a_first, &b_first);
+            let rec_proof: InnerProof = self.inner_product_argument(
+                &g_first, &h_first, u, &p_first, &a_first, &b_first, transcript,
+            );
             l_vec.append(&mut rec_proof.get_l_vec().clone());
             r_vec.append(&mut rec_proof.get_r_vec().clone());
 

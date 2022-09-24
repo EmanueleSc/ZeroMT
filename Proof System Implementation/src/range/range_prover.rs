@@ -1,7 +1,8 @@
 use crate::transcript::TranscriptProtocol;
 use crate::utils::Utils;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ff::{Field, One, Zero};
+use ark_ec::{AffineCurve, ProjectiveCurve};
+use ark_ff::{Field, One, PrimeField, Zero};
 use ark_std::rand::Rng;
 use merlin::Transcript;
 
@@ -10,8 +11,6 @@ use super::{
 };
 
 pub struct RangeProver<'a> {
-    transcript: &'a mut Transcript,
-    /// public generator
     g: &'a G1Point,
     h: &'a G1Point,
     remaining_balance: usize,
@@ -23,7 +22,6 @@ pub struct RangeProver<'a> {
 
 impl<'a> RangeProver<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         g: &'a G1Point,
         h: &'a G1Point,
         remaining_balance: usize,
@@ -32,9 +30,7 @@ impl<'a> RangeProver<'a> {
         h_vec: &'a Vec<G1Point>,
         n: usize,
     ) -> Self {
-        transcript.domain_sep(b"RangeProof");
         RangeProver {
-            transcript,
             g,
             h,
             remaining_balance,
@@ -45,18 +41,71 @@ impl<'a> RangeProver<'a> {
         }
     }
 
+    pub fn get_ipa_arguments(
+        &mut self,
+        x: &ScalarField,
+        y: &ScalarField,
+        z: &ScalarField,
+        mu: &ScalarField,
+        a: &G1Point,
+        s: &G1Point,
+        h: &G1Point,
+        g_vec: &Vec<G1Point>,
+        h_vec: &Vec<G1Point>,
+    ) -> (Vec<G1Point>, G1Point) {
+        let h_first_vec: Vec<G1Point> = (0..h_vec.len())
+            .map(|i: usize| {
+                h_vec[i]
+                    .mul(y.pow([(i as u64)]).inverse().unwrap().into_repr())
+                    .into_affine()
+            })
+            .collect();
+
+        let p: G1Point = *a
+            + s.mul(x.into_repr()).into_affine()
+            + -Utils::inner_product_point_scalar(
+                &g_vec,
+                &Utils::generate_scalar_exp_vector(g_vec.len(), &ScalarField::one()),
+            )
+            .unwrap()
+            .mul((z).into_repr())
+            .into_affine()
+            + Utils::inner_product_point_scalar(
+                &h_first_vec,
+                &Utils::generate_scalar_exp_vector(h_first_vec.len(), &y),
+            )
+            .unwrap()
+            .mul((z).into_repr())
+            .into_affine()
+            + (1..=(h_first_vec.len() / self.n))
+                .map(|j: usize| {
+                    Utils::inner_product_point_scalar(
+                        &h_first_vec[((j - 1) * self.n)..(j * self.n)].to_vec(),
+                        &Utils::generate_scalar_exp_vector(self.n, &ScalarField::from(2)),
+                    )
+                    .unwrap()
+                    .mul((z.pow([1 + (j as u64)])).into_repr())
+                    .into_affine()
+                })
+                .sum::<G1Point>();
+        let phu: G1Point = p + -h.mul(mu.into_repr()).into_affine();
+
+        (h_first_vec, phu)
+    }
+
     pub fn generate_proof<R: Rng>(
         &mut self,
         rng: &mut R,
+        transcript: &mut Transcript,
     ) -> (
         RangeProof,
-        ScalarField,
         Vec<ScalarField>,
         Vec<ScalarField>,
         ScalarField,
         ScalarField,
         ScalarField,
     ) {
+        transcript.domain_sep(b"RangeProof");
         let m: usize = self.amounts.len() + 1;
 
         let alpha: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
@@ -76,11 +125,11 @@ impl<'a> RangeProver<'a> {
             Utils::pedersen_vector_commitment(&rho, &self.h, &s_l, self.g_vec, &s_r, self.h_vec)
                 .unwrap();
 
-        let _result = self.transcript.append_point(b"A", &a_commitment);
-        let _result = self.transcript.append_point(b"S", &s_commitment);
+        let _result = transcript.append_point(b"A", &a_commitment);
+        let _result = transcript.append_point(b"S", &s_commitment);
 
-        let y: ScalarField = self.transcript.challenge_scalar(b"y");
-        let z: ScalarField = self.transcript.challenge_scalar(b"z");
+        let y: ScalarField = transcript.challenge_scalar(b"y");
+        let z: ScalarField = transcript.challenge_scalar(b"z");
 
         let l: PolyVector = self.get_l_poly_vec(&z, &a_l, &s_l);
         let r: PolyVector = self.get_r_poly_vec(m, self.n, &y, &z, &a_r, &s_r);
@@ -96,10 +145,10 @@ impl<'a> RangeProver<'a> {
         let t_commitment_2: G1Point =
             Utils::pedersen_commitment(t.get_t_2(), self.g, &tau_2, self.h);
 
-        let _result = self.transcript.append_point(b"T1", &t_commitment_1);
-        let _result = self.transcript.append_point(b"T2", &t_commitment_2);
+        let _result = transcript.append_point(b"T1", &t_commitment_1);
+        let _result = transcript.append_point(b"T2", &t_commitment_2);
 
-        let x: ScalarField = self.transcript.challenge_scalar(b"x");
+        let x: ScalarField = transcript.challenge_scalar(b"x");
 
         let l_poly_vec: Vec<ScalarField> = l.evaluate(&x);
         let r_poly_vec: Vec<ScalarField> = r.evaluate(&x);
@@ -116,17 +165,17 @@ impl<'a> RangeProver<'a> {
 
         let a_t_commitment: G1Point = Utils::pedersen_commitment(&(-k_ab), self.g, &k_tau, self.h);
 
-        let _result = self.transcript.append_scalar(b"t_hat", &t_hat);
-        let _result = self.transcript.append_scalar(b"mu", &mu);
-        let _result = self.transcript.append_point(b"A_t", &a_t_commitment);
+        let _result = transcript.append_scalar(b"t_hat", &t_hat);
+        let _result = transcript.append_scalar(b"mu", &mu);
+        let _result = transcript.append_point(b"A_t", &a_t_commitment);
 
-        let c: ScalarField = self.transcript.challenge_scalar(b"c");
+        let c: ScalarField = transcript.challenge_scalar(b"c");
 
         let s_ab: ScalarField = self.get_s_ab(&k_ab, &c, self.remaining_balance, &z, self.amounts);
         let s_tau: ScalarField = (tau_x * c) + k_tau;
 
-        let _result = self.transcript.append_scalar(b"s_ab", &s_ab);
-        let _result = self.transcript.append_scalar(b"s_tau", &s_tau);
+        let _result = transcript.append_scalar(b"s_ab", &s_ab);
+        let _result = transcript.append_scalar(b"s_tau", &s_tau);
 
         (
             RangeProof::new(
@@ -140,7 +189,6 @@ impl<'a> RangeProver<'a> {
                 s_ab,
                 s_tau,
             ),
-            t_hat,
             l_poly_vec,
             r_poly_vec,
             x,

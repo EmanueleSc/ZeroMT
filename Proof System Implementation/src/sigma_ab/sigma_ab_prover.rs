@@ -8,8 +8,6 @@ use ark_std::rand::Rng;
 use merlin::Transcript;
 
 pub struct SigmaABProver<'a> {
-    transcript: &'a mut Transcript,
-    /// public generator
     g: &'a G1Point,
     d: &'a G1Point,
     c_r: &'a G1Point,
@@ -20,7 +18,6 @@ pub struct SigmaABProver<'a> {
 
 impl<'a> SigmaABProver<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         g: &'a G1Point,
         d: &'a G1Point,
         c_r: &'a G1Point,
@@ -28,10 +25,7 @@ impl<'a> SigmaABProver<'a> {
         a: &'a Vec<usize>,
         sk: &'a ScalarField,
     ) -> Self {
-        transcript.domain_sep(b"SigmaAB");
-
         SigmaABProver {
-            transcript,
             g,
             d,
             c_r,
@@ -41,11 +35,17 @@ impl<'a> SigmaABProver<'a> {
         }
     }
 
-    pub fn generate_proof<R: Rng>(&mut self, rng: &mut R) -> SigmaABProof {
+    pub fn generate_proof<R: Rng>(
+        &mut self,
+        rng: &mut R,
+        transcript: &'a mut Transcript,
+    ) -> SigmaABProof {
+        transcript.domain_sep(b"SigmaAB");
+
         let k_sk: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let k_ab: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
-        let z: ScalarField = self.transcript.challenge_scalar(b"z");
+        let z: ScalarField = transcript.challenge_scalar(b"z");
 
         let sum_d_z: G1Point = (1..=self.a.len())
             .map(|i| self.d.mul(z.pow([2 + (i as u64)])).into_affine())
@@ -60,16 +60,16 @@ impl<'a> SigmaABProver<'a> {
         let a_ab: G1Point = (c_r_d_z + sum_d_z).mul(k_sk.into_repr()).into_affine()
             + self.g.mul(k_ab.into_repr()).into_affine();
 
-        let _result = self.transcript.append_point(b"A_ab", &a_ab);
+        let _result = transcript.append_point(b"A_ab", &a_ab);
 
-        let c: ScalarField = self.transcript.challenge_scalar(b"c");
+        let c: ScalarField = transcript.challenge_scalar(b"c");
 
         let s_ab: ScalarField = self.get_s_ab(&k_ab, &c, self.b, &z, self.a);
 
         let s_sk: ScalarField = (*self.sk * c) + k_sk;
 
-        let _result = self.transcript.append_scalar(b"s_ab", &s_ab);
-        let _result = self.transcript.append_scalar(b"s_sk", &s_sk);
+        let _result = transcript.append_scalar(b"s_ab", &s_ab);
+        let _result = transcript.append_scalar(b"s_sk", &s_sk);
 
         SigmaABProof::new(a_ab, s_sk, s_ab)
     }

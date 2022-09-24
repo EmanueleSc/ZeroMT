@@ -3,8 +3,6 @@ mod zeromt_proof_tests {
     use std::time::{Duration, Instant};
 
     use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-    use ark_ec::{AffineCurve, ProjectiveCurve};
-    use ark_ff::{Field, One, PrimeField};
     use ark_serialize::CanonicalSerialize;
     use merlin::Transcript;
     use num_format::{Locale, ToFormattedString};
@@ -74,7 +72,7 @@ mod zeromt_proof_tests {
                 let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
                 let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
 
-                let (balance, amounts, balance_remaining) =
+                let (balance, amounts, remaining_balance) =
                     Utils::get_mock_balances(m, n, &mut rng);
 
                 // Random private keys
@@ -109,186 +107,119 @@ mod zeromt_proof_tests {
 
                 // Proofs generation
                 let start = Instant::now();
-                let (range_proof, t_hat, l_poly_vec, r_poly_vec, _x, _y, _z): (
+                let mut range_prover: RangeProver =
+                    RangeProver::new(&g, &h, remaining_balance, &amounts, &g_vec, &h_vec, n);
+
+                let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (
                     RangeProof,
-                    ScalarField,
                     Vec<ScalarField>,
                     Vec<ScalarField>,
                     ScalarField,
                     ScalarField,
                     ScalarField,
-                ) = RangeProver::new(
-                    &mut prover_trans,
-                    &g,
-                    &h,
-                    balance_remaining,
-                    &amounts,
-                    &g_vec,
-                    &h_vec,
-                    n,
-                )
-                .generate_proof(&mut rng);
+                ) = range_prover.generate_proof(&mut rng, &mut prover_trans);
                 let range_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_sk_proof: SigmaSKProof =
-                    SigmaSKProver::new(&mut prover_trans, &g, &sender_priv_key)
-                        .generate_proof(&mut rng);
+                let sigma_sk_proof: SigmaSKProof = SigmaSKProver::new(&g, &sender_priv_key)
+                    .generate_proof(&mut rng, &mut prover_trans);
                 let sigma_sk_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
                 let sigma_r_proof: SigmaRProof =
-                    SigmaRProver::new(&mut prover_trans, &g, &r).generate_proof(&mut rng);
+                    SigmaRProver::new(&g, &r).generate_proof(&mut rng, &mut prover_trans);
                 let sigma_r_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_ab_proof: SigmaABProof = SigmaABProver::new(
-                    &mut prover_trans,
-                    &g,
-                    &d,
-                    &c_r,
-                    balance_remaining,
-                    &amounts,
-                    &sender_priv_key,
-                )
-                .generate_proof(&mut rng);
+                let sigma_ab_proof: SigmaABProof =
+                    SigmaABProver::new(&g, &d, &c_r, remaining_balance, &amounts, &sender_priv_key)
+                        .generate_proof(&mut rng, &mut prover_trans);
                 let sigma_ab_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
                 let sigma_y_proof: SigmaYProof =
-                    SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys)
-                        .generate_proof(&mut rng);
+                    SigmaYProver::new(&r, &sender_pub_key, &recipients_pub_keys)
+                        .generate_proof(&mut rng, &mut prover_trans);
                 let sigma_y_prover_duration: Duration = start.elapsed();
 
                 // Proofs verification
                 let start = Instant::now();
-                let (range_proof_result, x, y, z) =
-                    RangeVerifier::new(&mut verifier_trans, &g, &h, m, n)
-                        .verify_proof(&range_proof);
+                let mut range_verifier: RangeVerifier = RangeVerifier::new(&g, &h, m, n);
+
+                let (range_proof_result, x_verifier, y_verifier, z_verifier) =
+                    range_verifier.verify_proof(&range_proof, &mut verifier_trans);
                 let range_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_sk_result =
-                    SigmaSKVerifier::new(&mut verifier_trans, &g, &sender_pub_key)
-                        .verify_proof(&sigma_sk_proof);
+                let sigma_sk_result = SigmaSKVerifier::new(&g, &sender_pub_key)
+                    .verify_proof(&sigma_sk_proof, &mut verifier_trans);
                 let sigma_sk_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
                 let sigma_r_result =
-                    SigmaRVerifier::new(&mut verifier_trans, &g, &d).verify_proof(&sigma_r_proof);
+                    SigmaRVerifier::new(&g, &d).verify_proof(&sigma_r_proof, &mut verifier_trans);
                 let sigma_r_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_ab_result =
-                    SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec)
-                        .verify_proof(&sigma_ab_proof);
+                let sigma_ab_result = SigmaABVerifier::new(&g, &d, &c_r, &c_l, &c_vec)
+                    .verify_proof(&sigma_ab_proof, &mut verifier_trans);
                 let sigma_ab_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-                let sigma_y_result = SigmaYVerifier::new(
-                    &mut verifier_trans,
-                    &sender_pub_key,
-                    &recipients_pub_keys,
-                    &c_vec,
-                    &c_bar_vec,
-                )
-                .verify_proof(&sigma_y_proof);
+                let sigma_y_result =
+                    SigmaYVerifier::new(&sender_pub_key, &recipients_pub_keys, &c_vec, &c_bar_vec)
+                        .verify_proof(&sigma_y_proof, &mut verifier_trans);
                 let sigma_y_verifier_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
-
-                let h_first_vec: Vec<G1Point> = (0..m * n)
-                    .map(|i: usize| {
-                        h_vec[i]
-                            .mul(y.pow([(i as u64)]).inverse().unwrap().into_repr())
-                            .into_affine()
-                    })
-                    .collect();
-
-                let p: G1Point = *range_proof.get_a()
-                    + range_proof.get_s().mul(x.into_repr()).into_affine()
-                    + -Utils::inner_product_point_scalar(
+                let (h_first_vec_prover, phu_prover): (Vec<G1Point>, G1Point) = range_prover
+                    .get_ipa_arguments(
+                        &x_prover,
+                        &y_prover,
+                        &z_prover,
+                        range_proof.get_mu(),
+                        range_proof.get_a(),
+                        range_proof.get_s(),
+                        &h,
                         &g_vec,
-                        &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one()),
-                    )
-                    .unwrap()
-                    .mul((z).into_repr())
-                    .into_affine()
-                    + Utils::inner_product_point_scalar(
-                        &h_first_vec,
-                        &Utils::generate_scalar_exp_vector(m * n, &y),
-                    )
-                    .unwrap()
-                    .mul((z).into_repr())
-                    .into_affine()
-                    + (1..=m)
-                        .map(|j: usize| {
-                            Utils::inner_product_point_scalar(
-                                &h_first_vec[((j - 1) * n)..(j * n)].to_vec(),
-                                &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2)),
-                            )
-                            .unwrap()
-                            .mul((z.pow([1 + (j as u64)])).into_repr())
-                            .into_affine()
-                        })
-                        .sum::<G1Point>();
-                let phu: G1Point = p + -h.mul(range_proof.get_mu().into_repr()).into_affine();
+                        &h_vec,
+                    );
 
                 let inner_proof: InnerProof = InnerProver::new(
-                    &mut prover_trans,
                     &g_vec,
-                    &h_first_vec,
-                    &phu,
-                    &t_hat,
+                    &h_first_vec_prover,
+                    &phu_prover,
+                    range_proof.get_t_hat(),
                     &l_poly_vec,
                     &r_poly_vec,
                     &u,
                 )
-                .generate_proof();
+                .generate_proof(&mut prover_trans);
                 let inner_prover_duration: Duration = start.elapsed();
 
                 let start = Instant::now();
 
-                let h_first_vec: Vec<G1Point> = (0..m * n)
-                    .map(|i: usize| {
-                        h_vec[i]
-                            .mul(y.pow([(i as u64)]).inverse().unwrap().into_repr())
-                            .into_affine()
-                    })
-                    .collect();
-
-                let p: G1Point = *range_proof.get_a()
-                    + range_proof.get_s().mul(x.into_repr()).into_affine()
-                    + -Utils::inner_product_point_scalar(
+                let (h_first_vec_verifier, phu_verifier): (Vec<G1Point>, G1Point) = range_verifier
+                    .get_ipa_arguments(
+                        &x_verifier,
+                        &y_verifier,
+                        &z_verifier,
+                        range_proof.get_mu(),
+                        range_proof.get_a(),
+                        range_proof.get_s(),
+                        &h,
                         &g_vec,
-                        &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one()),
-                    )
-                    .unwrap()
-                    .mul((z).into_repr())
-                    .into_affine()
-                    + Utils::inner_product_point_scalar(
-                        &h_first_vec,
-                        &Utils::generate_scalar_exp_vector(m * n, &y),
-                    )
-                    .unwrap()
-                    .mul((z).into_repr())
-                    .into_affine()
-                    + (1..=m)
-                        .map(|j: usize| {
-                            Utils::inner_product_point_scalar(
-                                &h_first_vec[((j - 1) * n)..(j * n)].to_vec(),
-                                &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2)),
-                            )
-                            .unwrap()
-                            .mul((z.pow([1 + (j as u64)])).into_repr())
-                            .into_affine()
-                        })
-                        .sum::<G1Point>();
-                let phu: G1Point = p + -h.mul(range_proof.get_mu().into_repr()).into_affine();
+                        &h_vec,
+                    );
 
-                let inner_result =
-                    InnerVerifier::new(&mut verifier_trans, &g_vec, &h_first_vec, &phu, &t_hat, &u)
-                        .verify_proof_multiscalar(&inner_proof);
+                let inner_result = InnerVerifier::new(
+                    &g_vec,
+                    &h_first_vec_verifier,
+                    &phu_verifier,
+                    range_proof.get_t_hat(),
+                    &u,
+                )
+                .verify_proof_multiscalar(&inner_proof, &mut verifier_trans);
                 let inner_verifier_duration: Duration = start.elapsed();
 
                 let proof_check: bool = range_proof_result.is_ok()

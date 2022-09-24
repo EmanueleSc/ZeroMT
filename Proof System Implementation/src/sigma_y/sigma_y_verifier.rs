@@ -8,7 +8,6 @@ use merlin::Transcript;
 use std::io::Error;
 
 pub struct SigmaYVerifier<'a> {
-    transcript: &'a mut Transcript,
     y: &'a G1Point,
     y_bar: &'a Vec<G1Point>,
     c_vec: &'a Vec<G1Point>,
@@ -17,15 +16,12 @@ pub struct SigmaYVerifier<'a> {
 
 impl<'a> SigmaYVerifier<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         y: &'a G1Point,
         y_bar: &'a Vec<G1Point>,
         c_vec: &'a Vec<G1Point>,
         c_bar_vec: &'a Vec<G1Point>,
     ) -> Self {
-        transcript.domain_sep(b"SigmaY");
         SigmaYVerifier {
-            transcript,
             y,
             y_bar,
             c_vec,
@@ -33,13 +29,17 @@ impl<'a> SigmaYVerifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &SigmaYProof) -> Result<(), Error> {
-        let _result = self
-            .transcript
-            .append_point(b"A_y_bar", proof.get_a_y_bar());
+    pub fn verify_proof(
+        &mut self,
+        proof: &SigmaYProof,
+        transcript: &mut Transcript,
+    ) -> Result<(), Error> {
+        transcript.domain_sep(b"SigmaY");
 
-        let c: ScalarField = self.transcript.challenge_scalar(b"c");
-        let _result = self.transcript.append_scalar(b"s_r", proof.get_s_r());
+        let _result = transcript.append_point(b"A_y_bar", proof.get_a_y_bar());
+
+        let c: ScalarField = transcript.challenge_scalar(b"c");
+        let _result = transcript.append_scalar(b"s_r", proof.get_s_r());
 
         let left_eq: G1Point = self
             .y_bar

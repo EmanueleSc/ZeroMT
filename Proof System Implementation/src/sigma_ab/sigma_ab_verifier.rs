@@ -8,7 +8,6 @@ use merlin::Transcript;
 use std::io::Error;
 
 pub struct SigmaABVerifier<'a> {
-    transcript: &'a mut Transcript,
     /// public generator
     g: &'a G1Point,
     d: &'a G1Point,
@@ -19,17 +18,13 @@ pub struct SigmaABVerifier<'a> {
 
 impl<'a> SigmaABVerifier<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         g: &'a G1Point,
         d: &'a G1Point,
         c_r: &'a G1Point,
         c_l: &'a G1Point,
         c_vec: &'a Vec<G1Point>,
     ) -> Self {
-        transcript.domain_sep(b"SigmaAB");
-
         SigmaABVerifier {
-            transcript,
             g,
             d,
             c_r,
@@ -38,15 +33,21 @@ impl<'a> SigmaABVerifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &SigmaABProof) -> Result<(), Error> {
-        let z: ScalarField = self.transcript.challenge_scalar(b"z");
+    pub fn verify_proof(
+        &mut self,
+        proof: &SigmaABProof,
+        transcript: &mut Transcript,
+    ) -> Result<(), Error> {
+        transcript.domain_sep(b"SigmaAB");
 
-        let _result = self.transcript.append_point(b"A_ab", proof.get_a_ab());
+        let z: ScalarField = transcript.challenge_scalar(b"z");
 
-        let c: ScalarField = self.transcript.challenge_scalar(b"c");
+        let _result = transcript.append_point(b"A_ab", proof.get_a_ab());
 
-        let _result = self.transcript.append_scalar(b"s_ab", proof.get_s_ab());
-        let _result = self.transcript.append_scalar(b"s_sk", proof.get_s_sk());
+        let c: ScalarField = transcript.challenge_scalar(b"c");
+
+        let _result = transcript.append_scalar(b"s_ab", proof.get_s_ab());
+        let _result = transcript.append_scalar(b"s_sk", proof.get_s_sk());
 
         let left_eq_sum_d_z: G1Point = (1..=self.c_vec.len())
             .map(|i| self.d.mul(z.pow([2 + (i as u64)])).into_affine())

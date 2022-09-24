@@ -7,9 +7,6 @@ mod sigma_y_tests {
 
     #[test]
     fn verify_sigma_y_test() {
-        let mut prover_trans: Transcript = Transcript::new(b"SigmaYTest");
-        let mut verifier_trans: Transcript = Transcript::new(b"SigmaYTest");
-
         let mut rng = ark_std::rand::thread_rng();
 
         let n_increases: usize = 2;
@@ -18,6 +15,9 @@ mod sigma_y_tests {
         for _ in 0..=n_increases {
             let mut m: usize = 2;
             for _ in 0..=m_increases {
+                let mut prover_trans: Transcript = Transcript::new(b"SigmaYTest");
+                let mut verifier_trans: Transcript = Transcript::new(b"SigmaYTest");
+
                 let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
@@ -50,17 +50,12 @@ mod sigma_y_tests {
                     .collect();
 
                 let proof: SigmaYProof =
-                    SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys)
-                        .generate_proof(&mut rng);
+                    SigmaYProver::new(&r, &sender_pub_key, &recipients_pub_keys)
+                        .generate_proof(&mut rng, &mut prover_trans);
 
-                let result: Result<(), Error> = SigmaYVerifier::new(
-                    &mut verifier_trans,
-                    &sender_pub_key,
-                    &recipients_pub_keys,
-                    &c_vec,
-                    &c_bar_vec,
-                )
-                .verify_proof(&proof);
+                let result: Result<(), Error> =
+                    SigmaYVerifier::new(&sender_pub_key, &recipients_pub_keys, &c_vec, &c_bar_vec)
+                        .verify_proof(&proof, &mut verifier_trans);
 
                 assert!(result.is_ok(), "Verifier fails");
 

@@ -10,7 +10,6 @@ use std::io::Error;
 use super::inner_proof::InnerProof;
 
 pub struct InnerVerifier<'a> {
-    transcript: &'a mut Transcript,
     g_vec: &'a Vec<G1Point>,
     h_vec: &'a Vec<G1Point>,
     p: &'a G1Point,
@@ -20,16 +19,13 @@ pub struct InnerVerifier<'a> {
 
 impl<'a> InnerVerifier<'a> {
     pub fn new(
-        transcript: &'a mut Transcript,
         g_vec: &'a Vec<G1Point>,
         h_vec: &'a Vec<G1Point>,
         p: &'a G1Point,
         c: &'a ScalarField,
         u: &'a G1Point,
     ) -> Self {
-        transcript.domain_sep(b"InnerProductArgument");
         InnerVerifier {
-            transcript,
             g_vec,
             h_vec,
             p,
@@ -38,16 +34,26 @@ impl<'a> InnerVerifier<'a> {
         }
     }
 
-    pub fn verify_proof(&mut self, proof: &InnerProof) -> Result<(), Error> {
-        let x: ScalarField = self.transcript.challenge_scalar(b"x");
+    pub fn verify_proof(
+        &mut self,
+        proof: &InnerProof,
+        transcript: &mut Transcript,
+    ) -> Result<(), Error> {
+        transcript.domain_sep(b"InnerProductArgument");
+        let x: ScalarField = transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
 
-        self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof)
+        self.inner_product_argument(self.g_vec, self.h_vec, &ux, &p_first, proof, transcript)
     }
 
-    pub fn verify_proof_multiscalar(&mut self, proof: &InnerProof) -> Result<(), Error> {
-        let x: ScalarField = self.transcript.challenge_scalar(b"x");
+    pub fn verify_proof_multiscalar(
+        &mut self,
+        proof: &InnerProof,
+        transcript: &mut Transcript,
+    ) -> Result<(), Error> {
+        transcript.domain_sep(b"InnerProductArgument");
+        let x: ScalarField = transcript.challenge_scalar(b"x");
         let ux: G1Point = self.u.mul((x).into_repr()).into_affine();
         let p_first: G1Point = *self.p + ux.mul((self.c).into_repr()).into_affine();
 
@@ -59,6 +65,7 @@ impl<'a> InnerVerifier<'a> {
             proof,
             &mut [].to_vec(),
             self.g_vec.len(),
+            transcript,
         )
     }
 
@@ -98,13 +105,14 @@ impl<'a> InnerVerifier<'a> {
         proof: &InnerProof,
         x_vec: &mut Vec<ScalarField>,
         n: usize,
+        transcript: &mut Transcript,
     ) -> Result<(), Error> {
         if n == 1 {
             let a: ScalarField = *proof.get_a();
             let b: ScalarField = *proof.get_b();
 
-            let _result = self.transcript.append_scalar(b"a", &a);
-            let _result = self.transcript.append_scalar(b"b", &b);
+            let _result = transcript.append_scalar(b"a", &a);
+            let _result = transcript.append_scalar(b"b", &b);
 
             let c: ScalarField = a * b;
 
@@ -131,9 +139,9 @@ impl<'a> InnerVerifier<'a> {
 
             let l: G1Point = proof.get_l_vec()[0];
             let r: G1Point = proof.get_r_vec()[0];
-            let _result = self.transcript.append_point(b"l", &l);
-            let _result = self.transcript.append_point(b"r", &r);
-            let x: ScalarField = self.transcript.challenge_scalar(b"x");
+            let _result = transcript.append_point(b"l", &l);
+            let _result = transcript.append_point(b"r", &r);
+            let x: ScalarField = transcript.challenge_scalar(b"x");
 
             let mut x_vec_first: Vec<ScalarField> = [x].to_vec();
             x_vec_first.append(x_vec);
@@ -158,6 +166,7 @@ impl<'a> InnerVerifier<'a> {
                 &rec_proof,
                 &mut x_vec_first,
                 n_first,
+                transcript,
             )
         }
     }
@@ -169,14 +178,15 @@ impl<'a> InnerVerifier<'a> {
         u: &G1Point,
         p: &G1Point,
         proof: &InnerProof,
+        transcript: &mut Transcript,
     ) -> Result<(), Error> {
         let n: usize = g_vec.len();
         if n == 1 {
             let a: ScalarField = *proof.get_a();
             let b: ScalarField = *proof.get_b();
 
-            let _result = self.transcript.append_scalar(b"a", &a);
-            let _result = self.transcript.append_scalar(b"b", &b);
+            let _result = transcript.append_scalar(b"a", &a);
+            let _result = transcript.append_scalar(b"b", &b);
 
             let c: ScalarField = a * b;
 
@@ -202,9 +212,9 @@ impl<'a> InnerVerifier<'a> {
 
             let l: G1Point = proof.get_l_vec()[0];
             let r: G1Point = proof.get_r_vec()[0];
-            let _result = self.transcript.append_point(b"l", &l);
-            let _result = self.transcript.append_point(b"r", &r);
-            let x: ScalarField = self.transcript.challenge_scalar(b"x");
+            let _result = transcript.append_point(b"l", &l);
+            let _result = transcript.append_point(b"r", &r);
+            let x: ScalarField = transcript.challenge_scalar(b"x");
 
             let g_first_left: Vec<G1Point> =
                 Utils::product_scalar_point(&x.inverse().unwrap(), &g_left);
@@ -230,7 +240,7 @@ impl<'a> InnerVerifier<'a> {
                 proof.get_r_vec()[1..].to_vec(),
             );
 
-            self.inner_product_argument(&g_first, &h_first, u, &p_first, &rec_proof)
+            self.inner_product_argument(&g_first, &h_first, u, &p_first, &rec_proof, transcript)
         }
     }
 }

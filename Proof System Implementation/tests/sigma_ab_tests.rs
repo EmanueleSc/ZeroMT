@@ -7,9 +7,6 @@ mod sigma_ab_tests {
 
     #[test]
     fn verify_sigma_ab_test() {
-        let mut prover_trans: Transcript = Transcript::new(b"SigmaABTest");
-        let mut verifier_trans: Transcript = Transcript::new(b"SigmaABTest");
-
         let mut rng = ark_std::rand::thread_rng();
 
         let n_increases: usize = 2;
@@ -18,6 +15,9 @@ mod sigma_ab_tests {
         for _ in 0..=n_increases {
             let mut m: usize = 2;
             for _ in 0..=m_increases {
+                let mut prover_trans: Transcript = Transcript::new(b"SigmaABTest");
+                let mut verifier_trans: Transcript = Transcript::new(b"SigmaABTest");
+
                 let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
@@ -42,20 +42,12 @@ mod sigma_ab_tests {
                     .map(|a: &usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0)
                     .collect();
 
-                let proof: SigmaABProof = SigmaABProver::new(
-                    &mut prover_trans,
-                    &g,
-                    &d,
-                    &c_r,
-                    balance_remaining,
-                    &amounts,
-                    &sender_priv_key,
-                )
-                .generate_proof(&mut rng);
+                let proof: SigmaABProof =
+                    SigmaABProver::new(&g, &d, &c_r, balance_remaining, &amounts, &sender_priv_key)
+                        .generate_proof(&mut rng, &mut prover_trans);
 
-                let result: Result<(), Error> =
-                    SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec)
-                        .verify_proof(&proof);
+                let result: Result<(), Error> = SigmaABVerifier::new(&g, &d, &c_r, &c_l, &c_vec)
+                    .verify_proof(&proof, &mut verifier_trans);
 
                 assert!(result.is_ok(), "Verifier fails");
 
