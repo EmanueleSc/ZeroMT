@@ -91,19 +91,19 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Verifier transcript setup
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Random generator g
-let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Random generator h
-let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Randomness r
 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random generator u
-let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let u: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Vector g of random generators
-let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 // Vector h of random generators
-let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 // Random values for sender balance and cryptocurrency amounts to be transferred
-let (balance, amounts, balance_remaining) = Utils::get_mock_balances(m, n, &mut rng);
+let (balance, amounts, remaining_balance) = Utils::get_mock_balances(m, n, &mut rng);
 // Random sender private key
 let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random recipients private keys
@@ -122,9 +122,9 @@ let c_vec: Vec<G1Point> = amounts.iter().map(|a: &usize| ElGamal::elgamal_encryp
 let c_bar_vec: Vec<G1Point> = amounts.iter().zip(recipients_pub_keys.iter()).map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0).collect();
 
 // Proof generation
-let proof: ZeroMTProof = ZeroMTProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts, &g_vec, &h_vec, &u, n, &d, &c_r, &sender_priv_key, &r, &sender_pub_key, &recipients_pub_keys).generate_proof(&mut rng);
+let proof: ZeroMTProof = ZeroMTProver::new(&g, &h, remaining_balance, &amounts, &g_vec, &h_vec, &u, n, &d, &c_r, &sender_priv_key, &r, &sender_pub_key, &recipients_pub_keys).generate_proof(&mut rng, &mut prover_trans);
 // Proof verification
-let verification_result: Result<(), Error> = ZeroMTVerifier::new(&mut verifier_trans, &g, &h, n, &g_vec, &h_vec, &u, &d, &c_r, &c_l, &c_vec, &c_bar_vec, &sender_pub_key, &recipients_pub_keys).verify_proof(&proof);
+let verification_result: Result<(), Error> = ZeroMTVerifier::new(&g, &h, n, &g_vec, &h_vec, &u, &d, &c_r, &c_l, &c_vec, &c_bar_vec, &sender_pub_key, &recipients_pub_keys).verify_proof(&proof, &mut verifier_trans);
 ```
 
 ### *Bulletproofs* aggregated range proof and inner-product argument
@@ -163,11 +163,10 @@ Verifier $\mathcal{V}$ inputs:
 - $P \in \mathbb{G}$, commitment to elements involved in an inner product. Obtained from the range proof as $P - \mu \cdot h$.
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::{Field, One, PrimeField};
 use merlin::Transcript;
+use serial_test::serial;
 use std::io::Error;
-use zeromt::{ InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver, RangeVerifier, Utils, };
+use zeromt::{ InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver, RangeVerifier, Utils};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
@@ -180,32 +179,36 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Verifier transcript setup
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Random generator g
-let g: G1Point = Utils::get_curve_generator();
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Random generator h
-let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Vector g of random generators
-let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 // Vector h of random generators
-let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 // Random values for sender balance and cryptocurrency amounts to be transferred
-let (_balance_start, amounts, balance_remaining) = Utils::get_mock_balances(m, n, &mut rng);
+let (_balance_start, amounts, remaining_balance) = Utils::get_mock_balances(m, n, &mut rng);
 
+let mut range_prover: RangeProver = RangeProver::new(&g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n);
+
+let mut range_verifier: RangeVerifier = RangeVerifier::new(&g, &h, m, n);
 // Range proof generation
-let (range_proof, t_hat, l_poly_vec, r_poly_vec, _x, _y, _z): (RangeProof, ScalarField, Vec<ScalarField>, Vec<ScalarField>, ScalarField, ScalarField, ScalarField) = RangeProver::new(&mut prover_trans, &g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n).generate_proof(&mut rng);
+let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (RangeProof, Vec<ScalarField>, Vec<ScalarField>, ScalarField, ScalarField, ScalarField) = range_prover.generate_proof(&mut rng, &mut prover_trans);
 // Range proof verification
-let (range_proof_result, x, y, z): (Result<(), Error>, ScalarField, ScalarField, ScalarField) = RangeVerifier::new(&mut verifier_trans, &g, &h, m, n).verify_proof(&range_proof);
+let (range_proof_result, x_verifier, y_verifier, _z_verifier): (Result<(), Error>, ScalarField, ScalarField, ScalarField) = range_verifier.verify_proof(&range_proof, &mut verifier_trans);
 
 // Random generator u
-let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-// Inner-product argument setup
-let h_first_vec: Vec<G1Point> = (0..m * n).map(|i: usize| { h_vec[i].mul(y.pow([(i as u64)]).inverse().unwrap().into_repr()).into_affine() }).collect();
-let p: G1Point = *range_proof.get_a() + range_proof.get_s().mul(x.into_repr()).into_affine() + -Utils::inner_product_point_scalar(&g_vec, &Utils::generate_scalar_exp_vector(m * n, &ScalarField::one())).unwrap().mul((z).into_repr()).into_affine() + Utils::inner_product_point_scalar(&h_first_vec, &Utils::generate_scalar_exp_vector(m * n, &y)).unwrap().mul((z).into_repr()).into_affine() + (1..=m).map(|j: usize| { Utils::inner_product_point_scalar(&h_first_vec[((j - 1) * n)..(j * n)].to_vec(), &Utils::generate_scalar_exp_vector(n, &ScalarField::from(2))).unwrap().mul((z.pow([1 + (j as u64)])).into_repr()).into_affine() }).sum::<G1Point>();
-let phu: G1Point = p + -h.mul(range_proof.get_mu().into_repr()).into_affine();
+let u: G1Point = Utils::get_n_generators(1, &mut rng)[0];
+// Inner-product argument prover setup
+let (h_first_vec_prover, phu_prover): (Vec<G1Point>, G1Point) = range_prover.get_ipa_arguments(&x_prover, &y_prover, &z_prover, range_proof.get_mu(), range_proof.get_a(), range_proof.get_s(), &h, &g_vec, &h_vec);
+// Inner-product argument verifier setup
+let (h_first_vec_verifier, phu_verifier): (Vec<G1Point>, G1Point) = range_verifier.get_ipa_arguments(&x_verifier, &y_verifier, &z_prover, range_proof.get_mu(), range_proof.get_a(), range_proof.get_s(), &h, &g_vec, &h_vec);
+
 
 // Inner-product argument proof generation
-let inner_proof: InnerProof = InnerProver::new(&mut prover_trans, &g_vec, &h_first_vec, &phu, &t_hat, &l_poly_vec, &r_poly_vec, &u).generate_proof();
+ let inner_proof: InnerProof = InnerProver::new(&g_vec, &h_first_vec_prover, &phu_prover, range_proof.get_t_hat(), &l_poly_vec, &r_poly_vec, &u) .generate_proof(&mut prover_trans);
 // Inner-product argument proof verification
-let inner_result: Result<(), Error> = InnerVerifier::new(&mut verifier_trans, &g_vec, &h_first_vec, &phu, &t_hat, &u).verify_proof_multiscalar(&inner_proof);
+let inner_result: Result<(), Error> = InnerVerifier::new(&g_vec, &h_first_vec_verifier, &phu_verifier, range_proof.get_t_hat(), &u) .verify_proof_multiscalar(&inner_proof, &mut verifier_trans);
 ```
 ### $\Sigma$-protocol `sk`
 To prove a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed $$y = sk \cdot g.$$
@@ -223,11 +226,9 @@ Verifier $\mathcal{V}$ inputs:
 
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::PrimeField;
 use merlin::Transcript;
 use std::io::Error;
-use zeromt::{SigmaSKProof, SigmaSKProver, SigmaSKVerifier, Utils, ElGamal};
+use zeromt::{ElGamal, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, Utils};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
@@ -241,16 +242,16 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 
 // Random generator g
-let g: G1Point = Utils::get_curve_generator();
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Random sender private key
 let sk: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
 // Sender public key, generated by means of ElGamal encryption
 let y: G1Point = ElGamal::elgamal_calculate_pub_key(&sk, &g);
 
 // Proof generation
-let proof: SigmaSKProof = SigmaSKProver::new(&mut prover_trans, &g, &sk).generate_proof(&mut rng);
+let proof: SigmaSKProof = SigmaSKProver::new(&g, &sk).generate_proof(&mut rng, &mut prover_trans);
 // Proof verification
-let result: Result<(), Error> = SigmaSKVerifier::new(&mut verifier_trans, &g, &y).verify_proof(&proof);
+let result: Result<(), Error> = SigmaSKVerifier::new(&g, &y).verify_proof(&proof, &mut verifier_trans);
                     
 ```
 ### $\Sigma$-protocol `r`
@@ -268,11 +269,9 @@ Verifier $\mathcal{V}$ inputs:
 - $D \in \mathbb{G}$, factor for ElGamal scheme.
 ```rust
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
-use ark_ec::{AffineCurve, ProjectiveCurve};
-use ark_ff::PrimeField;
 use merlin::Transcript;
 use std::io::Error;
-use zeromt::{SigmaRProof, SigmaRProver, SigmaRVerifier, Utils, ElGamal};
+use zeromt::{ElGamal, SigmaRProof, SigmaRProver, SigmaRVerifier, Utils};
 
 // Random Number Generator
 let mut rng = ark_std::rand::thread_rng();
@@ -286,16 +285,16 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 
 // Random generator g
-let g: G1Point = Utils::get_curve_generator();
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Randomness r
 let r: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
 // Factor D for ElGamal scheme
 let d: G1Point = ElGamal::elgamal_d(&g, &r);
 
 // Proof generation
-let proof: SigmaRProof = SigmaRProver::new(&mut prover_trans, &g, &r).generate_proof(&mut rng);
+let proof: SigmaRProof = SigmaRProver::new(&g, &r).generate_proof(&mut rng, &mut prover_trans);
 // Proof verification
-let result: Result<(), Error> = SigmaRVerifier::new(&mut verifier_trans, &g, &d).verify_proof(&proof);
+let result: Result<(), Error> = SigmaRVerifier::new(&g, &d).verify_proof(&proof, &mut verifier_trans);
 ```
 ### $\Sigma$-protocol `ab`
 
@@ -336,11 +335,11 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Verifier transcript setup
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Random generator g
-let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Randomness r
 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random values for sender balance and cryptocurrency amounts to be transferred
-let (balance, amounts, balance_remaining) = Utils::get_mock_balances(m, n, &mut rng);
+let (balance, amounts, remaining_balance) = Utils::get_mock_balances(m, n, &mut rng);
 // Random sender private key   
 let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Sender public key, generated by means of ElGamal encryption
@@ -353,9 +352,9 @@ let d: G1Point = ElGamal::elgamal_d(&g, &r);
 let c_vec: Vec<G1Point> = amounts.iter().map(|a:&usize| ElGamal::elgamal_encrypt(*a, &sender_pub_key, &g, &r).0).collect();
 
 // Proof generation
-let proof: SigmaABProof = SigmaABProver::new(&mut prover_trans, &g, &d, &c_r, balance_remaining, &amounts, &sender_priv_key).generate_proof(&mut rng);
+let proof: SigmaABProof = SigmaABProver::new(&g, &d, &c_r, remaining_balance, &amounts, &sender_priv_key).generate_proof(&mut rng, &mut prover_trans);
 // Proof verification
-let result: Result<(), Error> = SigmaABVerifier::new(&mut verifier_trans, &g, &d, &c_r, &c_l, &c_vec).verify_proof(&proof);
+let result: Result<(), Error> = SigmaABVerifier::new(&g, &d, &c_r, &c_l, &c_vec).verify_proof(&proof, &mut verifier_trans);
 
 ```
 ### $\Sigma$-protocol `y`
@@ -399,11 +398,11 @@ let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Verifier transcript setup
 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 // Random generator g
-let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 // Randomness r
 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random values for sender balance and cryptocurrency amounts to be transferred
-let (_balance_start, amounts, _balance_remaining) = Utils::get_mock_balances(m, n, &mut rng);
+let (_balance_start, amounts, _remaining_balance) = Utils::get_mock_balances(m, n, &mut rng);
 // Random sender private key
 let sender_priv_key: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 // Random recipients private keys
@@ -418,7 +417,7 @@ let c_vec: Vec<G1Point> = amounts.iter().map(|a: &usize| ElGamal::elgamal_encryp
 let c_bar_vec: Vec<G1Point> = amounts.iter().zip(recipients_pub_keys.iter()).map(|(a, k)| ElGamal::elgamal_encrypt(*a, k, &g, &r).0).collect();
 
 // Proof generation
-let proof: SigmaYProof = SigmaYProver::new(&mut prover_trans, &r, &sender_pub_key, &recipients_pub_keys).generate_proof(&mut rng); 
+let proof: SigmaYProof = SigmaYProver::new(&r, &sender_pub_key, &recipients_pub_keys).generate_proof(&mut rng, &mut prover_trans); 
 // Proof verification
-let result: Result<(), Error> = SigmaYVerifier::new(&mut verifier_trans, &sender_pub_key, &recipients_pub_keys, &c_vec, &c_bar_vec).verify_proof(&proof);
+let result: Result<(), Error> = SigmaYVerifier::new(&sender_pub_key, &recipients_pub_keys, &c_vec, &c_bar_vec).verify_proof(&proof, &mut verifier_trans);
 ```
