@@ -22,14 +22,14 @@ mod zeromt_proof_tests {
                 let mut prover_trans: Transcript = Transcript::new(b"ZeroMTTest");
                 let mut verifier_trans: Transcript = Transcript::new(b"ZeroMTTest");
 
-                let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
-                let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
+                let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
-                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let u: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
-                let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
-                let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+                let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
+                let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 
                 let (balance, amounts, remaining_balance) =
                     Utils::get_mock_balances(m, n, &mut rng);

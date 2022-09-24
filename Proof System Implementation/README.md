@@ -74,10 +74,10 @@ Verifier $\mathcal{V}$ inputs:
 - $y \in \mathbb{G}$, sender public key;
 - $\bar{\mathbf{y}} \in \mathbb{G}^{m-1}$, recipients' public keys.
 ```rust
-use std::io::Error;
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use merlin::Transcript;
 use serial_test::serial;
+use std::io::Error;
 use zeromt::{ElGamal, Utils, ZeroMTProof, ZeroMTProver, ZeroMTVerifier};
 
 // Random Number Generator

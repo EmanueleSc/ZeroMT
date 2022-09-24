@@ -18,7 +18,7 @@ mod sigma_y_tests {
                 let mut prover_trans: Transcript = Transcript::new(b"SigmaYTest");
                 let mut verifier_trans: Transcript = Transcript::new(b"SigmaYTest");
 
-                let g: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let r: ScalarField = Utils::get_n_random_scalars_not_zero(1, &mut rng)[0];
 
                 let (_balance_start, amounts, _balance_remaining) =

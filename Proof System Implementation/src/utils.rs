@@ -22,10 +22,7 @@ pub struct Utils;
 
 impl Utils {
     /// Berkeley solution
-    pub fn get_n_generators_berkeley<R: Rng>(
-        number_of_generators: usize,
-        rng: &mut R,
-    ) -> Vec<G1Point> {
+    pub fn get_n_generators<R: Rng>(number_of_generators: usize, rng: &mut R) -> Vec<G1Point> {
         let gens: Vec<G1Point> =
             CRH::<G1Projective, MockWindow>::generator_powers(number_of_generators, rng)
                 .iter()

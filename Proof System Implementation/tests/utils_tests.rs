@@ -39,7 +39,7 @@ mod utils_tests {
     #[test]
     pub fn inner_product_point_scalar_test() {
         let mut rng = ark_std::rand::thread_rng();
-        let test_points: Vec<G1Point> = Utils::get_n_generators_berkeley(2, &mut rng);
+        let test_points: Vec<G1Point> = Utils::get_n_generators(2, &mut rng);
 
         let test_bits_one: Vec<ScalarField> = [1, 1]
             .to_vec()

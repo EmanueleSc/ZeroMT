@@ -22,10 +22,10 @@ mod range_proof_tests {
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
                 let g: G1Point = Utils::get_curve_generator();
-                let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
-                let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
-                let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+                let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
+                let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 
                 let (_balance_start, amounts, balance_remaining) =
                     Utils::get_mock_balances(m, n, &mut rng);
@@ -69,13 +69,13 @@ mod range_proof_tests {
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
                 let g: G1Point = Utils::get_curve_generator();
-                let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (_balance_start, amounts, balance_remaining) =
                     Utils::get_mock_balances(m, n, &mut rng);
 
-                let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
-                let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+                let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
+                let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 
                 let mut range_prover: RangeProver =
                     RangeProver::new(&g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n);
@@ -98,7 +98,7 @@ mod range_proof_tests {
                     ScalarField,
                 ) = range_verifier.verify_proof(&range_proof, &mut verifier_trans);
 
-                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let u: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (h_first_vec_prover, phu_prover): (Vec<G1Point>, G1Point) = range_prover
                     .get_ipa_arguments(
@@ -170,13 +170,13 @@ mod range_proof_tests {
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
                 let g: G1Point = Utils::get_curve_generator();
-                let h: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (_balance_start, amounts, balance_remaining) =
                     Utils::get_mock_balances(m, n, &mut rng);
 
-                let g_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
-                let h_vec: Vec<G1Point> = Utils::get_n_generators_berkeley(m * n, &mut rng);
+                let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
+                let h_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
 
                 let mut range_prover: RangeProver =
                     RangeProver::new(&g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n);
@@ -199,7 +199,7 @@ mod range_proof_tests {
                     ScalarField,
                 ) = range_verifier.verify_proof(&range_proof, &mut verifier_trans);
 
-                let u: G1Point = Utils::get_n_generators_berkeley(1, &mut rng)[0];
+                let u: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (h_first_vec_prover, phu_prover): (Vec<G1Point>, G1Point) = range_prover
                     .get_ipa_arguments(
