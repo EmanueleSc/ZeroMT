@@ -10,8 +10,8 @@ mod zeromt_proof_tests {
     #[test]
     #[serial]
     fn zeromt_proof_test() {
-        let n_increases: usize = 1;
-        let m_increases: usize = 1;
+        let n_increases: usize = 2;
+        let m_increases: usize = 5;
 
         let mut rng = ark_std::rand::thread_rng();
 

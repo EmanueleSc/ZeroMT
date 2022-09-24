@@ -18,7 +18,7 @@ mod sigma_r_tests {
             let mut _m: usize = 2;
             for _ in 0..=m_increases {
                 let r: ScalarField = Utils::get_n_random_scalars(1, &mut rng)[0];
-                let g: G1Point = Utils::get_curve_generator();
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let d: G1Point = ElGamal::elgamal_d(&g, &r);
 
                 let proof: SigmaRProof =

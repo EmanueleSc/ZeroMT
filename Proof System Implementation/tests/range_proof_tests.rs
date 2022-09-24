@@ -21,7 +21,7 @@ mod range_proof_tests {
                 let mut prover_trans: Transcript = Transcript::new(b"RangeProofTest");
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
-                let g: G1Point = Utils::get_curve_generator();
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let g_vec: Vec<G1Point> = Utils::get_n_generators(m * n, &mut rng);
@@ -68,7 +68,7 @@ mod range_proof_tests {
                 let mut prover_trans: Transcript = Transcript::new(b"RangeProofTest");
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
-                let g: G1Point = Utils::get_curve_generator();
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (_balance_start, amounts, balance_remaining) =
@@ -169,7 +169,7 @@ mod range_proof_tests {
                 let mut prover_trans: Transcript = Transcript::new(b"RangeProofTest");
                 let mut verifier_trans: Transcript = Transcript::new(b"RangeProofTest");
 
-                let g: G1Point = Utils::get_curve_generator();
+                let g: G1Point = Utils::get_n_generators(1, &mut rng)[0];
                 let h: G1Point = Utils::get_n_generators(1, &mut rng)[0];
 
                 let (_balance_start, amounts, balance_remaining) =
