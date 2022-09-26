@@ -12,4 +12,4 @@ The *Ethereum* yellow paper provides a value in terms of gas consumption for eac
 | `DIV`    | Scalar division                       | $5$                                                      |
 | `EXP`    | Scalar exponentiation                 | $(exp == 0) ? 10 : (10 + 10 \cdot (1 + log_{256}(exp)))$ |
 | `ECADD`  | Curve point addition                  | $500$ (*EIP-196*) - $150$ (*EIP-1108*)                   |
-| `ECMUL`  | Curve point and scalar multiplication | $40,000$ (*EIP-196*) - $6,000$ (*EIP-1108*)              |
+| `ECMUL`  | Curve point and scalar multiplication | $40.000$ (*EIP-196*) - $6.000$ (*EIP-1108*)              |
