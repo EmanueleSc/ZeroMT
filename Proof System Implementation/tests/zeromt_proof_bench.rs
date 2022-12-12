@@ -8,10 +8,10 @@ mod zeromt_proof_tests {
     use num_format::{Locale, ToFormattedString};
     use serial_test::serial;
     use zeromt::{
-        CsvUtils, ElGamal, InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver,
-        RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof, SigmaRProver,
-        SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof, SigmaYProver,
-        SigmaYVerifier, Utils,
+        CsvUtils, ElGamal, InnerProof, InnerProver, InnerVerifier, PolyCoefficients, RangeProof,
+        RangeProver, RangeVerifier, SigmaABProof, SigmaABProver, SigmaABVerifier, SigmaRProof,
+        SigmaRProver, SigmaRVerifier, SigmaSKProof, SigmaSKProver, SigmaSKVerifier, SigmaYProof,
+        SigmaYProver, SigmaYVerifier, Utils,
     };
 
     #[test]
@@ -110,13 +110,22 @@ mod zeromt_proof_tests {
                 let mut range_prover: RangeProver =
                     RangeProver::new(&g, &h, remaining_balance, &amounts, &g_vec, &h_vec, n);
 
-                let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (
+                let (
+                    range_proof,
+                    l_poly_vec,
+                    r_poly_vec,
+                    x_prover,
+                    y_prover,
+                    z_prover,
+                    t_coefficients,
+                ): (
                     RangeProof,
                     Vec<ScalarField>,
                     Vec<ScalarField>,
                     ScalarField,
                     ScalarField,
                     ScalarField,
+                    PolyCoefficients,
                 ) = range_prover.generate_proof(&mut rng, &mut prover_trans);
                 let range_prover_duration: Duration = start.elapsed();
 

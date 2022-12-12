@@ -5,6 +5,7 @@ use crate::Utils;
 use super::poly_vector::PolyVector;
 
 pub struct PolyCoefficients {
+    t_0: ScalarField,
     t_1: ScalarField,
     t_2: ScalarField,
 }
@@ -29,9 +30,12 @@ impl PolyCoefficients {
             + -t_0
             + -t_2;
 
-        PolyCoefficients { t_1, t_2 }
+        PolyCoefficients { t_0, t_1, t_2 }
     }
 
+    pub fn get_t_0(&self) -> &ScalarField {
+        &self.t_0
+    }
     pub fn get_t_1(&self) -> &ScalarField {
         &self.t_1
     }

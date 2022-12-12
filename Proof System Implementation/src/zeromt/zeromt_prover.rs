@@ -1,7 +1,7 @@
 use crate::{
-    InnerProof, InnerProver, RangeProof, RangeProver, SigmaABProof, SigmaABProver, SigmaRProof,
-    SigmaRProver, SigmaSKProof, SigmaSKProver, SigmaYProof, SigmaYProver, TranscriptProtocol,
-    ZeroMTProof,
+    range::poly_coefficients::PolyCoefficients, InnerProof, InnerProver, RangeProof, RangeProver,
+    SigmaABProof, SigmaABProver, SigmaRProof, SigmaRProver, SigmaSKProof, SigmaSKProver,
+    SigmaYProof, SigmaYProver, TranscriptProtocol, ZeroMTProof,
 };
 use ark_bn254::{Fr as ScalarField, G1Affine as G1Point};
 use ark_std::rand::Rng;
@@ -76,13 +76,14 @@ impl<'a> ZeroMTProver<'a> {
             self.n,
         );
 
-        let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (
+        let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover, t_coefficients): (
             RangeProof,
             Vec<ScalarField>,
             Vec<ScalarField>,
             ScalarField,
             ScalarField,
             ScalarField,
+            PolyCoefficients,
         ) = range_prover.generate_proof(rng, transcript);
 
         let (h_first_vec_prover, phu_prover): (Vec<G1Point>, G1Point) = range_prover

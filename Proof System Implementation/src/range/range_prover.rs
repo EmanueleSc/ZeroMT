@@ -104,6 +104,7 @@ impl<'a> RangeProver<'a> {
         ScalarField,
         ScalarField,
         ScalarField,
+        PolyCoefficients,
     ) {
         transcript.domain_sep(b"RangeProof");
         let m: usize = self.amounts.len() + 1;
@@ -134,16 +135,16 @@ impl<'a> RangeProver<'a> {
         let l: PolyVector = self.get_l_poly_vec(&z, &a_l, &s_l);
         let r: PolyVector = self.get_r_poly_vec(m, self.n, &y, &z, &a_r, &s_r);
 
-        let t: PolyCoefficients = PolyCoefficients::new(&l, &r);
+        let t_coefficients: PolyCoefficients = PolyCoefficients::new(&l, &r);
 
         let tau_1: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
         let tau_2: ScalarField = Utils::get_n_random_scalars(1, rng)[0];
 
         let t_commitment_1: G1Point =
-            Utils::pedersen_commitment(t.get_t_1(), self.g, &tau_1, self.h);
+            Utils::pedersen_commitment(t_coefficients.get_t_1(), self.g, &tau_1, self.h);
 
         let t_commitment_2: G1Point =
-            Utils::pedersen_commitment(t.get_t_2(), self.g, &tau_2, self.h);
+            Utils::pedersen_commitment(t_coefficients.get_t_2(), self.g, &tau_2, self.h);
 
         let _result = transcript.append_point(b"T1", &t_commitment_1);
         let _result = transcript.append_point(b"T2", &t_commitment_2);
@@ -194,6 +195,7 @@ impl<'a> RangeProver<'a> {
             x,
             y,
             z,
+            t_coefficients,
         )
     }
 

@@ -1,8 +1,8 @@
 mod csv_utils;
 mod elgamal;
 mod errors;
-mod inner_halo;
 mod inner;
+mod inner_halo;
 mod range;
 mod sigma_ab;
 mod sigma_r;
@@ -24,6 +24,7 @@ pub use crate::inner::inner_proof::InnerProof;
 pub use crate::inner::inner_prover::InnerProver;
 pub use crate::inner::inner_verifier::InnerVerifier;
 
+pub use crate::range::poly_coefficients::PolyCoefficients;
 pub use crate::range::range_proof::RangeProof;
 pub use crate::range::range_prover::RangeProver;
 pub use crate::range::range_verifier::RangeVerifier;

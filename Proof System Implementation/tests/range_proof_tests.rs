@@ -6,7 +6,8 @@ mod range_proof_tests {
 
     use std::io::Error;
     use zeromt::{
-        InnerProof, InnerProver, InnerVerifier, RangeProof, RangeProver, RangeVerifier, Utils,
+        InnerProof, InnerProver, InnerVerifier, PolyCoefficients, RangeProof, RangeProver,
+        RangeVerifier, Utils,
     };
     #[test]
     #[serial]
@@ -30,13 +31,14 @@ mod range_proof_tests {
                 let (_balance_start, amounts, balance_remaining) =
                     Utils::get_mock_balances(m, n, &mut rng);
 
-                let (proof, _l_poly_vec, _r_poly_vec, _x, _y, _z): (
+                let (proof, _l_poly_vec, _r_poly_vec, _x, _y, _z, _t_coefficients): (
                     RangeProof,
                     Vec<ScalarField>,
                     Vec<ScalarField>,
                     ScalarField,
                     ScalarField,
                     ScalarField,
+                    PolyCoefficients,
                 ) = RangeProver::new(&g, &h, balance_remaining, &amounts, &g_vec, &h_vec, n)
                     .generate_proof(&mut rng, &mut prover_trans);
 
@@ -82,13 +84,22 @@ mod range_proof_tests {
 
                 let mut range_verifier: RangeVerifier = RangeVerifier::new(&g, &h, m, n);
 
-                let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (
+                let (
+                    range_proof,
+                    l_poly_vec,
+                    r_poly_vec,
+                    x_prover,
+                    y_prover,
+                    z_prover,
+                    t_coefficients,
+                ): (
                     RangeProof,
                     Vec<ScalarField>,
                     Vec<ScalarField>,
                     ScalarField,
                     ScalarField,
                     ScalarField,
+                    PolyCoefficients,
                 ) = range_prover.generate_proof(&mut rng, &mut prover_trans);
 
                 let (range_proof_result, x_verifier, y_verifier, _z_verifier): (
@@ -183,13 +194,22 @@ mod range_proof_tests {
 
                 let mut range_verifier: RangeVerifier = RangeVerifier::new(&g, &h, m, n);
 
-                let (range_proof, l_poly_vec, r_poly_vec, x_prover, y_prover, z_prover): (
+                let (
+                    range_proof,
+                    l_poly_vec,
+                    r_poly_vec,
+                    x_prover,
+                    y_prover,
+                    z_prover,
+                    t_coefficients,
+                ): (
                     RangeProof,
                     Vec<ScalarField>,
                     Vec<ScalarField>,
                     ScalarField,
                     ScalarField,
                     ScalarField,
+                    PolyCoefficients,
                 ) = range_prover.generate_proof(&mut rng, &mut prover_trans);
 
                 let (range_proof_result, x_verifier, y_verifier, _z_verifier): (
