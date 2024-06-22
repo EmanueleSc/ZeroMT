@@ -29,16 +29,19 @@ For what concerns the elliptic curve underlying all the operations on elements o
 
 ### *ZeroMT* full proof system
 To prove that
-- each of the currency amounts in $\mathbf{a}$ is positive $$\forall a_i \in (a_1, \dots, a_{m-1}): a_i \in [0,MAX], \; MAX = 2^n - 1;$$
-- sender remaining currency balance $b'$ after the transfer  is positive $$b' \in [0,MAX], \; MAX = 2^n - 1;$$
-- a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed  $$y = sk \cdot g;$$
-- a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g;$$
-- a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D);$$
-- the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred $$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
-
-$$\bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge$$
-
-$$ D=r \cdot g)^{m-1}_{i=1}.$$
+- each of the currency amounts in $\mathbf{a}$ is positive 
+  $$\forall a_i \in (a_1, \dots, a_{m-1}): a_i \in [0,MAX], \; MAX = 2^n - 1;$$
+- sender remaining currency balance $b'$ after the transfer  is positive
+  $$b' \in [0,MAX], \; MAX = 2^n - 1;$$
+- a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed  
+  $$y = sk \cdot g;$$
+- a sender knows a randomness value $r$ to be used in the encryption process for which 
+  $$D = r \cdot g;$$
+- a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ 
+  $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D);$$
+- the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred 
+  
+$$(C_{i} = a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
@@ -211,7 +214,8 @@ let (h_first_vec_verifier, phu_verifier): (Vec<G1Point>, G1Point) = range_verifi
 let inner_result: Result<(), Error> = InnerVerifier::new(&g_vec, &h_first_vec_verifier, &phu_verifier, range_proof.get_t_hat(), &u) .verify_proof_multiscalar(&inner_proof, &mut verifier_trans);
 ```
 ### $\Sigma$-protocol `sk`
-To prove a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed $$y = sk \cdot g.$$
+To prove a sender knows a secret private key $sk$ for which the respective public key $y$ encrypts the values in $\textbf{C}$ and the such public key is well-formed 
+$$y = sk \cdot g.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
@@ -255,7 +259,8 @@ let result: Result<(), Error> = SigmaSKVerifier::new(&g, &y).verify_proof(&proof
                     
 ```
 ### $\Sigma$-protocol `r`
-To prove a sender knows a randomness value $r$ to be used in the encryption process for which $$D = r \cdot g.$$
+To prove a sender knows a randomness value $r$ to be used in the encryption process for which 
+$$D = r \cdot g.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
@@ -298,7 +303,8 @@ let result: Result<(), Error> = SigmaRVerifier::new(&g, &d).verify_proof(&proof,
 ```
 ### $\Sigma$-protocol `ab`
 
-To prove a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ $$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D).$$
+To prove a sender balance cannot be overdraft, i.e. the sender remaining encrypted balance is equal to the subtraction between the current sender encrypted balance and all of the $(m-1)$ encrypted currency amounts contained in $\mathbf{C}$ 
+$$C_L - \sum_{i=1}^{m-1}C_i = b' \cdot g + sk \cdot (C_R- \sum_{i=1}^{m-1}D).$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
@@ -360,11 +366,7 @@ let result: Result<(), Error> = SigmaABVerifier::new(&g, &d, &c_r, &c_l, &c_vec)
 ### $\Sigma$-protocol `y`
 To prove the i-th values in both $\textbf{C}$ and $\bar{\textbf{C}}$ are well-formed and are the result of the encryption of the i-th currency amount to be transferred 
 
-$$(C_{i} = a_{i} \cdot g + r \cdot y \wedge$$
-
-$$\bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge$$
-
-$$ D=r \cdot g)^{m-1}_{i=1}.$$
+$$(C_{i} = a_{i} \cdot g + r \cdot y \wedge \bar{C}_{i} = a_{i} \cdot g + r \cdot \bar{y}_{i} \wedge D=r \cdot g)^{m-1}_{i=1}.$$
 
 Prover $\mathcal{P}$ inputs:
 - Random Number Generator in `rand::Rng`;
