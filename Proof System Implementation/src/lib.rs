@@ -3,6 +3,7 @@ mod elgamal;
 mod errors;
 mod inner;
 mod inner_halo;
+mod inner_sigma;
 mod range;
 mod sigma_ab;
 mod sigma_r;
@@ -15,6 +16,10 @@ mod zeromt;
 pub use crate::errors::proof_error::ProofError;
 pub use crate::errors::transcript_error::TranscriptError;
 pub use crate::errors::utils_error::UtilsError;
+
+pub use crate::inner_sigma::inner_sigma_proof::InnerSigmaProof;
+pub use crate::inner_sigma::inner_sigma_prover::InnerSigmaProver;
+pub use crate::inner_sigma::inner_sigma_verifier::InnerSigmaVerifier;
 
 pub use crate::inner_halo::inner_halo_proof::InnerHaloProof;
 pub use crate::inner_halo::inner_halo_prover::InnerHaloProver;
